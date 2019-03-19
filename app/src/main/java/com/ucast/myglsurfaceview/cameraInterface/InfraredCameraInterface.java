@@ -4,18 +4,20 @@ package com.ucast.myglsurfaceview.cameraInterface;
 import android.content.Context;
 import android.graphics.PixelFormat;
 import android.graphics.Point;
-import android.graphics.SurfaceTexture;
 import android.hardware.Camera;
 import android.os.Environment;
 import android.util.Log;
 import android.view.Display;
 import android.view.SurfaceHolder;
-import android.view.SurfaceView;
 import android.view.WindowManager;
 
 import com.ucast.myglsurfaceview.MainActivity;
 import com.ucast.myglsurfaceview.TakephotoActivity;
+import com.ucast.myglsurfaceview.events.TakeLedOffPhotoResult;
+import com.ucast.myglsurfaceview.events.TakeLedOnPhotoResult;
 import com.ucast.myglsurfaceview.exception.ExceptionApplication;
+
+import org.greenrobot.eventbus.EventBus;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -59,7 +61,7 @@ public class InfraredCameraInterface {
                 parameters.setPictureFormat(PixelFormat.JPEG);
                 //设置图片预览的格式
                 parameters.setPreviewFormat(PixelFormat.YCbCr_420_SP);
-//                setZoom(parameters);
+                setZoom(parameters);
                 camera.setParameters(parameters);
                 camera.setPreviewDisplay(surfaceHolder);
                 camera.startPreview();
@@ -71,7 +73,7 @@ public class InfraredCameraInterface {
         }
     }
 
-    public void takePhoto(){
+    public void takePhoto(final String ledId, final boolean isLedOn){
         if (camera != null){
             if (!isPreview)
                 return;
@@ -123,6 +125,11 @@ public class InfraredCameraInterface {
 
                     camera.stopPreview();
                     camera.startPreview();
+                    if (isLedOn){
+                        EventBus.getDefault().postSticky(new TakeLedOnPhotoResult(jpegName,ledId));
+                    }else {
+                        EventBus.getDefault().postSticky(new TakeLedOffPhotoResult(jpegName,ledId));
+                    }
                 }
 
             });

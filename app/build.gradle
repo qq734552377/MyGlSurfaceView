@@ -11,8 +11,13 @@ android {
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
         externalNativeBuild {
             cmake {
-                cppFlags ""
+                arguments "-DANDROID_ARM_NEON=TRUE", "-DANDROID_TOOLCHAIN=clang", "-DCMAKE_BUILD_TYPE=Release"
+                //'-DANDROID_STL=gnustl_static'
+                cppFlags "-std=c++11", "-frtti", "-fexceptions"
             }
+        }
+        ndk {
+            abiFilters 'armeabi-v7a'
         }
     }
     buildTypes {
@@ -29,21 +34,20 @@ android {
 }
 
 dependencies {
-    implementation fileTree(dir: 'libs', include: ['*.jar'])
+    implementation fileTree(include: ['*.jar'], dir: 'libs')
     implementation 'com.android.support:appcompat-v7:28.0.0'
     implementation 'com.android.support.constraint:constraint-layout:1.1.3'
     testImplementation 'junit:junit:4.12'
     androidTestImplementation 'com.android.support.test:runner:1.0.2'
     androidTestImplementation 'com.android.support.test.espresso:espresso-core:3.0.2'
-
     implementation 'de.javagl:obj:0.2.1'
-
-
     implementation 'org.greenrobot:eventbus:3.0.0'
     implementation files('libs/netty-all-4.1.6.Final.jar')
-    implementation 'org.xutils:xutils:3.5.0'//最新版本
+    implementation 'org.xutils:xutils:3.5.0'
+    //最新版本
     implementation files('libs/log4j-1.2.17.jar')
     implementation files('libs/android-logging-log4j-1.0.3.jar')
     implementation 'com.alibaba:fastjson:1.1.58.android'
     implementation files('libs/core-3.2.1.jar')
+    implementation project(':openCVLibrary340')
 }

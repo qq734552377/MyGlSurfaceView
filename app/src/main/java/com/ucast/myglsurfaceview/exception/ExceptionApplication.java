@@ -18,6 +18,12 @@ public class ExceptionApplication extends Application {
     public static Logger gLogger;
     public static Point SCREENPOINT = new Point(720,1080);
 
+    static {
+        System.loadLibrary("opencv_java3");
+        System.loadLibrary("opencv_java");
+        System.loadLibrary("native-lib");
+    }
+
     public void onCreate() {
         super.onCreate();
         x.Ext.init(this);

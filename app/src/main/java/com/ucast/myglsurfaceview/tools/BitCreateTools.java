@@ -10,7 +10,9 @@ import android.os.Environment;
 import com.ucast.myglsurfaceview.exception.CrashHandler;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
+import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.List;
@@ -67,6 +69,20 @@ public class BitCreateTools {
 
         return bmp;
     }
+
+    public static void saveBitmapAsPng(Bitmap bmp,File f) {
+        try {
+            FileOutputStream out = new FileOutputStream(f);
+            bmp.compress(Bitmap.CompressFormat.PNG, 100, out);
+            out.flush();
+            out.close();
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
 
     /**
      * 通过字符串获取分行的数据

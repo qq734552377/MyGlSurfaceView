@@ -13,11 +13,11 @@ import java.io.OutputStream;
 /**
  * Created by pj on 2016/1/22.
  */
-public class OpenPrint {
+public class OpenLed {
     private SerialPort ser;
     private InputStream intput;
     private OutputStream output;
-    private String Path = Config.PORTPATHE;
+    private String Path = Config.PORTPATH;
     private boolean mDispose;
     private byte[] Buffer;
     private ArrayQueue<byte[]> _mQueues = new ArrayQueue<byte[]>(0x400);
@@ -34,7 +34,7 @@ public class OpenPrint {
     //设置存放消息数组的设定长度
     private int fanhuiBufferLen = 1024 ;
 
-    public OpenPrint(String path) {
+    public OpenLed(String path) {
         Path = path;
         Buffer = new byte[1024];
         fanhuiBuffer = new byte[fanhuiBufferLen];
@@ -134,13 +134,13 @@ public class OpenPrint {
     }
 
     public void AddHandle(byte[] buffer) {
-        synchronized (OpenPrint.class) {
+        synchronized (OpenLed.class) {
             _mQueues.enqueue(buffer);
         }
     }
 
     private byte[] GetItem() {
-        synchronized (OpenPrint.class) {
+        synchronized (OpenLed.class) {
             if (_mQueues.size() > 0) {
                 return _mQueues.dequeue();
             }
@@ -242,7 +242,7 @@ public class OpenPrint {
 
     //关闭
     public void Dispose() {
-        synchronized (OpenPrint.class) {
+        synchronized (OpenLed.class) {
             if (!mDispose) {
                 mDispose = true;
                 ExceptionApplication.gLogger.error(Path + "Printer serial error close!");

@@ -90,6 +90,9 @@ public class MyTools {
     public static void writeSimpleLog(String log){
         writeToFile(Config.LOGPATH,log);
     }
+    public static void writeSimpleLogWithTime(String log){
+        writeToFile(Config.LOGPATHWITHTIME,millisToDateStringNoSpace(System.currentTimeMillis()) + "  : " +log);
+    }
 
     /**
      *  将指定byte数组以16进制的形式返回
