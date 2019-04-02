@@ -31,19 +31,6 @@ set_target_properties(libboxdt PROPERTIES
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=gnu++11 -fexceptions -frtti")
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
 add_library( # Sets the name of the library.
         native-lib
 

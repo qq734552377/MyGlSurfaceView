@@ -3,7 +3,9 @@ package com.ucast.myglsurfaceview.tools;
 import android.content.Context;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
+import android.os.Environment;
 import android.provider.Settings;
+import android.util.Base64;
 
 
 import com.ucast.myglsurfaceview.MainActivity;
@@ -12,6 +14,7 @@ import com.ucast.myglsurfaceview.exception.ExceptionApplication;
 import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
+import java.io.InputStream;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
@@ -34,6 +37,24 @@ public class MyTools {
 
 
 
+    public static String encode(byte[] bstr) {
+        return Base64.encodeToString(bstr, Base64.DEFAULT);
+    }
+
+
+    /**
+     * 解码
+     *
+     * @param str
+     * @return string
+     */
+    public static byte[] decode(String str) {
+        try {
+            return Base64.decode(str, Base64.DEFAULT);
+        } catch (Exception e) {
+            return null;
+        }
+    }
 
 
     public static void writeToFile(String path , String data){
@@ -91,7 +112,8 @@ public class MyTools {
         writeToFile(Config.LOGPATH,log);
     }
     public static void writeSimpleLogWithTime(String log){
-        writeToFile(Config.LOGPATHWITHTIME,millisToDateStringNoSpace(System.currentTimeMillis()) + "  : " +log);
+        if (Config.ISDEBUG)
+            writeToFile(Config.LOGPATHWITHTIME,millisToDateStringNoSpace(System.currentTimeMillis()) + "  : " +log);
     }
 
     /**
@@ -146,6 +168,42 @@ public class MyTools {
         date = formatter.format(curDate);
         return date;
     }
+
+    public static void copyCfg(Context context,String... picNames) {
+        for (int i = 0; i < picNames.length; i++) {
+            String picName = picNames[i];
+            String dirPath = Environment.getExternalStorageDirectory().getPath() + "/Ucast/"+picName;
+            File f_ucast = new File(Environment.getExternalStorageDirectory().getPath() + "/Ucast");
+            if (!f_ucast.exists())
+                f_ucast.mkdir();
+            File f = new File(dirPath);
+            if (f.exists())
+                return;
+            FileOutputStream os = null;
+            InputStream is = null;
+            int len = -1;
+            try {
+                is = context.getClass().getClassLoader().getResourceAsStream("assets/"+picName);
+                os = new FileOutputStream(dirPath);
+                byte b[] = new byte[1024];
+                while ((len = is.read(b)) != -1) {
+                    os.write(b, 0, len);
+                }
+                is.close();
+                os.close();
+            } catch (Exception e) {
+            }
+        }
+
+    }
+
+
+
+
+
+
+
+
 
     public static float[] getPicVertex(int width,int height){
 

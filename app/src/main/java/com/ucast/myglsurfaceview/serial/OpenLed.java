@@ -269,7 +269,7 @@ public class OpenLed {
         }
     }
 
-    public void serial(byte[] buffer) {
+    private void serial(byte[] buffer) {
         int dataLen = buffer[0];
         int mode = buffer[1];
         if ((dataLen + 2) == buffer.length){

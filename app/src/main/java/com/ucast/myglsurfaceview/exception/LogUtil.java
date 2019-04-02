@@ -18,7 +18,7 @@ public class LogUtil {
 
     public static void configLog() {
         final LogConfigurator logConfigurator = new LogConfigurator();
-        logConfigurator.setFileName(Environment.getExternalStorageDirectory() + File.separator + "Ucast" + File.separator + "tag.log");
+        logConfigurator.setFileName(Environment.getExternalStorageDirectory() + File.separator + "Ucast" + File.separator + "glviews.log");
         // Set the root log level
         logConfigurator.setRootLevel(Level.INFO);
         // Set log level of a specific logger

@@ -4,8 +4,8 @@ android {
     compileSdkVersion 28
     defaultConfig {
         applicationId "com.ucast.myglsurfaceview"
-        minSdkVersion 17
-        targetSdkVersion 17
+        minSdkVersion 21
+        targetSdkVersion 22
         versionCode 1
         versionName "1.0"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
@@ -50,4 +50,5 @@ dependencies {
     implementation 'com.alibaba:fastjson:1.1.58.android'
     implementation files('libs/core-3.2.1.jar')
     implementation project(':openCVLibrary340')
+    implementation project(':firstVuforia')
 }

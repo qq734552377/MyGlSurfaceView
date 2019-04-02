@@ -4,22 +4,23 @@
 
     <!-- 摄像头相关权限 -->
     <uses-permission android:name="android.permission.CAMERA" />
-
+    <uses-permission android:name="android.permission.INTERNET" />
     <uses-feature android:name="android.hardware.camera" />
     <uses-feature android:name="android.hardware.camera.autofocus" />
-    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
-    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"/>
+
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.SENSOR_INFO" />
     <!-- 传感器信息 -->
     <uses-permission android:name="android.permission.SENSOR_ENABLE" />
-    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission android:name="android.permission.WRITE_OWNER_DATA" />
+    <uses-permission android:name="android.permission.WRITE_SETTINGS"/>
+    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
+    <uses-permission android:name="android.permission.CHANGE_WIFI_STATE" />
     <!-- 打开传感器 -->
-
-
-    <!--<uses-feature android:name="android.hardware.camera" android:required="true"/>-->
-    <!--<uses-feature android:name="android.hardware.camera.autofocus" android:required="true" />-->
-
+    <!-- <uses-feature android:name="android.hardware.camera" android:required="true"/> -->
+    <!-- <uses-feature android:name="android.hardware.camera.autofocus" android:required="true" /> -->
     <application
         android:name=".exception.ExceptionApplication"
         android:allowBackup="true"
@@ -27,22 +28,44 @@
         android:label="@string/app_name"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
+        android:enabled="true"
         android:theme="@style/AppTheme">
         <activity
             android:name=".MainActivity"
+            android:screenOrientation="landscape"></activity>
+        <activity
+            android:name=".TakephotoActivity"
             android:screenOrientation="landscape">
-
-        </activity>
-        <activity android:name=".TakephotoActivity"
-            android:screenOrientation="landscape"
-            >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
-
         </activity>
+        <activity android:name=".UnityActivity"
+            android:screenOrientation="landscape"
+            ></activity>
+        <service
+            android:name=".UpdateService"
+            android:enabled="true"
+            android:exported="true">
+
+
+        </service>
+
+
+        <receiver
+            android:name=".StartBrocast"
+            android:enabled="true"
+            android:exported="true">
+            <intent-filter android:priority="100">
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+
+                <category android:name="android.intent.category.HOME" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </receiver>
+
     </application>
 
 </manifest>

@@ -2,6 +2,9 @@ package com.ucast.myglsurfaceview.cameraInterface;
 
 
 import android.content.Context;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.graphics.ImageFormat;
 import android.graphics.PixelFormat;
 import android.graphics.Point;
 import android.hardware.Camera;
@@ -16,8 +19,12 @@ import com.ucast.myglsurfaceview.TakephotoActivity;
 import com.ucast.myglsurfaceview.events.TakeLedOffPhotoResult;
 import com.ucast.myglsurfaceview.events.TakeLedOnPhotoResult;
 import com.ucast.myglsurfaceview.exception.ExceptionApplication;
+import com.ucast.myglsurfaceview.tools.Config;
+import com.ucast.myglsurfaceview.tools.MyTools;
 
 import org.greenrobot.eventbus.EventBus;
+import org.opencv.android.Utils;
+import org.opencv.core.Mat;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -32,6 +39,9 @@ public class InfraredCameraInterface {
     private static InfraredCameraInterface cameraInterface = new InfraredCameraInterface();
     Camera camera;
     boolean isPreview;
+
+    private String ledId;
+    private boolean isLedOn;
     public static InfraredCameraInterface getInstance() {
         return cameraInterface;
     }
@@ -51,17 +61,22 @@ public class InfraredCameraInterface {
                 if (isPreview)
                     doStopCamera();
 
-
                 initFromCameraParameters(camera);
                 Camera.Parameters parameters = camera.getParameters();
                 if (TakephotoActivity.ISPORTRAIT)
                     camera.setDisplayOrientation(90);
+//                camera.setDisplayOrientation(90);
                 parameters.setPreviewSize(cameraResolution.x, cameraResolution.y);
 //                parameters.setPreviewSize(screenResolution.y, screenResolution.x);
-                parameters.setPictureFormat(PixelFormat.JPEG);
+//                parameters.setPictureFormat(ImageFormat.JPEG);
                 //设置图片预览的格式
-                parameters.setPreviewFormat(PixelFormat.YCbCr_420_SP);
-                setZoom(parameters);
+//                parameters.setPreviewFormat(PixelFormat.RGBA_8888);
+//                setZoom(parameters);
+//                List<Camera.Size> list = parameters.getSupportedPictureSizes();
+//                int paramPosition = 0;
+//                final Camera.Size size = list.get(paramPosition);
+//                //设置照片分辨率，注意要在摄像头支持的范围内选择
+//                parameters.setPictureSize(size.width,size.height);
                 camera.setParameters(parameters);
                 camera.setPreviewDisplay(surfaceHolder);
                 camera.startPreview();
@@ -73,11 +88,69 @@ public class InfraredCameraInterface {
         }
     }
 
-    public void takePhoto(final String ledId, final boolean isLedOn){
+
+    Camera.PictureCallback callback = new Camera.PictureCallback() {
+        @Override
+        public void onPictureTaken(byte[] data, Camera camera) {
+            MyTools.writeSimpleLogWithTime("相机数据过来  " + System.currentTimeMillis());
+            if (Config.USESTRINGPATH){
+                String path =   Environment.getExternalStorageDirectory().toString() + "/Ucast/photo";
+                File folder=new File(path);
+                if(!folder.exists()){
+                    boolean isOk =  folder.mkdirs();
+                    if (!isOk)
+                        return;
+                }
+                long dataTake = System.currentTimeMillis();
+                final String jpegName = path + "/" + dataTake +".jpg";
+                File file=new File(jpegName);
+                FileOutputStream fos=null;
+                try {
+                    fos=new FileOutputStream(file);
+                    fos.write(data);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }finally{
+                    if (fos!=null) {
+                        try {
+                            fos.close();
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                }
+                MyTools.writeSimpleLogWithTime("存储相机数据完成  " + System.currentTimeMillis());
+                if (isLedOn){
+                    EventBus.getDefault().postSticky(new TakeLedOnPhotoResult(jpegName,ledId));
+                }else {
+                    EventBus.getDefault().postSticky(new TakeLedOffPhotoResult(jpegName,ledId));
+                }
+            }else {
+
+                Bitmap bitmap = BitmapFactory.decodeByteArray(data,0,data.length);
+                MyTools.writeSimpleLogWithTime("转换为bitmap数据完成  " + System.currentTimeMillis());
+                Mat src = new Mat();
+                Utils.bitmapToMat(bitmap, src);
+                MyTools.writeSimpleLogWithTime("转换为mat数据完成  " + System.currentTimeMillis());
+                if (isLedOn){
+                    EventBus.getDefault().postSticky(new TakeLedOnPhotoResult(src,ledId));
+                }else {
+                    EventBus.getDefault().postSticky(new TakeLedOffPhotoResult(src,ledId));
+                }
+            }
+
+            camera.stopPreview();
+            camera.startPreview();
+
+        }
+
+    };
+
+    public void takePhoto(String ledId, final boolean isLedOn){
         if (camera != null){
             if (!isPreview)
                 return;
-
+            MyTools.writeSimpleLogWithTime("准备相机  " + System.currentTimeMillis());
             Camera.Parameters parameters;
             try{
                 parameters = camera.getParameters();
@@ -88,53 +161,20 @@ public class InfraredCameraInterface {
             //获取摄像头支持的各种分辨率,因为摄像头数组不确定是按降序还是升序，这里的逻辑有时不是很好找得到相应的尺寸
             //可先确定是按升还是降序排列，再进对对比吧，我这里拢统地找了个，是个不精确的...
             List<Camera.Size> list = parameters.getSupportedPictureSizes();
+            int paramPosition = 0;
+            final Camera.Size size = list.get(paramPosition);
             //设置照片分辨率，注意要在摄像头支持的范围内选择
-            parameters.setPictureSize(list.get(0).width,list.get(0).height);
+            parameters.setPictureSize(size.width,size.height);
             //设置照相机参数
             camera.setParameters(parameters);
-            camera.takePicture(null, null, new Camera.PictureCallback() {
-                @Override
-                public void onPictureTaken(byte[] data, Camera camera) {
-                    String path =   Environment.getExternalStorageDirectory().toString() + "/Ucast/photo";
-                    File folder=new File(path);
-                    if(!folder.exists()){
-                        boolean isOk =  folder.mkdirs();
-                        if (!isOk)
-                            return;
-                    }
-                    long dataTake = System.currentTimeMillis();
-                    final String jpegName = path + "/" + dataTake +".jpg";
-                    File file=new File(jpegName);
-                    FileOutputStream fos=null;
-                    try {
-                        fos=new FileOutputStream(file);
-                        fos.write(data);
-                    } catch (Exception e) {
-                        // TODO Auto-generated catch block
-                        e.printStackTrace();
-                    }finally{
-                        if (fos!=null) {
-                            try {
-                                fos.close();
-                            } catch (IOException e) {
-                                // TODO Auto-generated catch block
-                                e.printStackTrace();
-                            }
-                        }
-                    }
-
-                    camera.stopPreview();
-                    camera.startPreview();
-                    if (isLedOn){
-                        EventBus.getDefault().postSticky(new TakeLedOnPhotoResult(jpegName,ledId));
-                    }else {
-                        EventBus.getDefault().postSticky(new TakeLedOffPhotoResult(jpegName,ledId));
-                    }
-                }
-
-            });
+            this.ledId = ledId;
+            this.isLedOn = isLedOn;
+            MyTools.writeSimpleLogWithTime("设置参数完成  " + System.currentTimeMillis());
+            camera.takePicture(null, null,callback );
         }
     }
+
+
 
     public void doStopCamera(){
         if (camera != null){
