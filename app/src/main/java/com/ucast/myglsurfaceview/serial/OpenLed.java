@@ -165,28 +165,28 @@ public class OpenLed {
 
     private void AnalyticalProtocol(byte[] buffer) {
         //添加串口数据
-        jointBuffer(buffer);
-//        MyTools.writeSimpleLog("加入缓存的数据： " + MyTools.printHexString(buffer));
+//        jointBuffer(buffer);
+        MyTools.writeSimpleLog("加入缓存的数据： " + MyTools.printHexString(buffer));
 //        ExceptionApplication.gLogger.info("所有的数据-->"+EpsonParseDemo.printHexString(buffer));
-        while (offSet > 0) {
-            int startIndex = getIndexByByte((byte) 0x24);
-            if (startIndex <= -1)
-                break;
-            if (startIndex >= fanhuiBuffer.length -1)
-                break;
-            int datalen = fanhuiBuffer[startIndex + 1];
-            if (datalen != 0x10)
-                break;
-            int endIndex = startIndex + datalen + 2 ;
-            if (endIndex > fanhuiBuffer.length - 1)
-                break;
-            if (!jiaoYan(startIndex + 2,endIndex))
-                break;
-            byte[] printBuffer = getPrintbyte(startIndex , endIndex);
-            MyTools.writeSimpleLog("解析出来的一条数据： " + MyTools.printHexString(printBuffer));
-            serial(printBuffer);
-            cutBuffer();
-        }
+//        while (offSet > 0) {
+//            int startIndex = getIndexByByte((byte) 0x24);
+//            if (startIndex <= -1)
+//                break;
+//            if (startIndex >= fanhuiBuffer.length -1)
+//                break;
+//            int datalen = fanhuiBuffer[startIndex + 1];
+//            if (datalen != 0x10)
+//                break;
+//            int endIndex = startIndex + datalen + 2 ;
+//            if (endIndex > fanhuiBuffer.length - 1)
+//                break;
+//            if (!jiaoYan(startIndex + 2,endIndex))
+//                break;
+//            byte[] printBuffer = getPrintbyte(startIndex , endIndex);
+//            MyTools.writeSimpleLog("解析出来的一条数据： " + MyTools.printHexString(printBuffer));
+//            serial(printBuffer);
+//            cutBuffer();
+//        }
     }
 
     private int getIndexByByte( byte b) {

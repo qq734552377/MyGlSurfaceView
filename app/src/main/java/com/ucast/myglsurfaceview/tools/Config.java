@@ -10,6 +10,7 @@ public class Config {
     public static int PORTBAUDRATE = 115200;
     public static boolean ISDEBUG = true;
     public static boolean USESTRINGPATH = false;
+    public static boolean isStartRecoding = false;
     public static boolean IsReplyToClient = true;
     public static String PORTPATH = "/dev/ttyS1";
 

@@ -324,6 +324,7 @@ public class TakephotoActivity extends AppCompatActivity implements SurfaceHolde
 
     public void startArAct(){
         Intent intent = new Intent(TakephotoActivity.this,MainActivity.class);
+        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
         startActivity(intent);
     }
 

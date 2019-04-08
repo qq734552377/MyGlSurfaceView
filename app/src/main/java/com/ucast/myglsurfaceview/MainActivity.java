@@ -24,7 +24,9 @@ import com.ucast.myglsurfaceview.cameraInterface.CameraInterface;
 import com.ucast.myglsurfaceview.exception.ExceptionApplication;
 import com.ucast.myglsurfaceview.nettySocket.h264.ScreenRecord;
 import com.ucast.myglsurfaceview.tools.ApManager;
+import com.ucast.myglsurfaceview.tools.Config;
 import com.ucast.myglsurfaceview.tools.FullScreenHelper;
+import com.ucast.myglsurfaceview.tools.MyTools;
 import com.ucast.myglsurfaceview.tools.ToastUtil;
 
 public class MainActivity extends AppCompatActivity implements SensorEventListener {
@@ -44,7 +46,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     private float[] matrix=new float[16];
 
     private MediaProjectionManager mMediaProjectionManager;
-    private boolean isRecording = false;
+//    public static boolean isRecording = false;
     private ScreenRecord mScreenRecord;
     public static final int REQUEST_CODE_A = 10001;
 
@@ -101,7 +103,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
     @Override
     protected void onDestroy() {
-        gl.onPause();
+//        gl.onPause();
         super.onDestroy();
     }
     // 将纳秒转化为秒
@@ -162,8 +164,9 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     /**
      * 开始截屏
      * **/
-    private void startScreenCapture(){
-        if (!isRecording) {
+    public void startScreenCapture(){
+        if (!Config.isStartRecoding) {
+            MyTools.writeSimpleLogWithTime("开始截屏");
             Intent captureIntent = mMediaProjectionManager.createScreenCaptureIntent();
             startActivityForResult(captureIntent, REQUEST_CODE_A);
         }
@@ -174,7 +177,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
      * 停止截屏
      * **/
     private void stopScreenCapture(){
-        isRecording = false;
+        Config.isStartRecoding = false;
         mScreenRecord.release();
     }
     @Override
@@ -188,9 +191,10 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                 }
                 mScreenRecord = new ScreenRecord(this, mediaProjection);
                 mScreenRecord.start();
-                isRecording = true;
+                Config.isStartRecoding = true;
             } catch (Exception e) {
-
+                MyTools.writeSimpleLog("onActivityResult 开启失败");
+                Config.isStartRecoding = false;
             }
         }
     }

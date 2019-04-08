@@ -52,6 +52,7 @@ public class UpdateService extends Service {
         isStart= false;
         if (server != null){
             server.Close();
+            server = null;
         }
         this.startService(localIntent);    //销毁时重新启动Service
     }
