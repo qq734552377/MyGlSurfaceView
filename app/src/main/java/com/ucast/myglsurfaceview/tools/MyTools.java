@@ -1,6 +1,7 @@
 package com.ucast.myglsurfaceview.tools;
 
 import android.content.Context;
+import android.graphics.Point;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.Environment;
@@ -8,8 +9,8 @@ import android.provider.Settings;
 import android.util.Base64;
 
 
-import com.ucast.myglsurfaceview.MainActivity;
 import com.ucast.myglsurfaceview.exception.ExceptionApplication;
+
 
 import java.io.BufferedOutputStream;
 import java.io.File;
@@ -138,6 +139,35 @@ public class MyTools {
         return r.toString();
     }
 
+    public static byte[] getBytesByString(String res){
+        if(res == null)
+            return null;
+        String [] bytes = res.trim().split(" ");
+        byte [] data =new byte[bytes.length];
+        int data_index = -1;
+        for (int i = 0; i < bytes.length; i++) {
+            int temp = -1;
+            if(bytes[i].equals("00")){
+                data_index ++;
+                data[data_index] = 0x00;
+                continue;
+            }else if(bytes[i].equals("FF")){
+                data_index ++;
+                data[data_index] = (byte)0xFF;
+                continue;
+            }
+            try {
+                temp = Integer.parseInt(bytes[i].substring(0), 16);
+                data_index ++;
+                data[data_index] = (byte) temp;
+            } catch (Exception e) {
+
+            }
+        }
+        return data;
+
+    }
+
     public static byte getSumJiaoYan(byte[] res){
         int sum = 0;
         for (int i = 0; i < res.length; i++) {
@@ -201,7 +231,14 @@ public class MyTools {
 
 
 
-
+    public static float[] getPicPosition(Point p){
+        int centerX = ExceptionApplication.PREVIEWSCREENPOINT.x / 2;
+        int centerY = ExceptionApplication.PREVIEWSCREENPOINT.y / 2;
+        float[]  pFloat = new float[2];
+        pFloat[0] = ((float) (p.x - centerX)) / ((float) centerX);
+        pFloat[1] = ((float) (p.y - centerY)) / ((float) centerY);
+        return pFloat;
+    }
 
 
 

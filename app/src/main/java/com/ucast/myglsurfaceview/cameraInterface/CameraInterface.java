@@ -12,6 +12,7 @@ import android.view.WindowManager;
 
 import com.ucast.myglsurfaceview.MainActivity;
 import com.ucast.myglsurfaceview.exception.ExceptionApplication;
+import com.ucast.myglsurfaceview.tools.MyTools;
 
 import java.io.IOException;
 import java.util.regex.Pattern;
@@ -28,8 +29,10 @@ public class CameraInterface {
     }
 
     public void doOpenCamera(){
-        camera = Camera.open(0);
-
+        if (camera == null) {
+            MyTools.writeSimpleLogWithTime("开启相机0");
+            camera = Camera.open(0);
+        }
     }
 
     public boolean isPreviewing(){
@@ -39,20 +42,22 @@ public class CameraInterface {
     public void doStartPreview(SurfaceTexture surfaceTexture){
         if (camera != null) {
             try {
-                camera.setPreviewTexture(surfaceTexture);
                 initFromCameraParameters(camera);
                 Camera.Parameters parameters = camera.getParameters();
                 if (MainActivity.ISPORTRAIT)
                     camera.setDisplayOrientation(90);
+//                camera.setDisplayOrientation(90);
                 parameters.setPreviewSize(cameraResolution.x, cameraResolution.y);  // ucast银联相机
 //                parameters.setPreviewSize(screenResolution.y, screenResolution.x);//一般手机
                 MainActivity.FRAMECALLBACKWIDTH = screenResolution.x;
                 MainActivity.FRAMECALLBACKHEIGHT = screenResolution.y;
 //                parameters.setPictureFormat(PixelFormat.JPEG);
-                setZoom(parameters);
+//                setZoom(parameters);
                 camera.setParameters(parameters);
+                camera.setPreviewTexture(surfaceTexture);
                 camera.startPreview();
                 isPreview = true;
+                MyTools.writeSimpleLogWithTime("开启相机0 预览");
             } catch (IOException e) {
                 e.printStackTrace();
             }
@@ -61,9 +66,11 @@ public class CameraInterface {
     }
 
     public void doStopCamera(){
-        if (camera != null){
+        if (camera != null) {
+            MyTools.writeSimpleLogWithTime("停止相机0");
             camera.stopPreview();
             camera.release();
+            camera = null;
             isPreview = false;
         }
     }

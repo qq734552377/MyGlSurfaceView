@@ -7,7 +7,9 @@ import android.os.Environment;
 import android.view.Surface;
 
 
+import com.ucast.myglsurfaceview.MainActivity;
 import com.ucast.myglsurfaceview.nettySocket.queue.H264Queuemanager;
+import com.ucast.myglsurfaceview.tools.MyTools;
 
 import java.io.BufferedOutputStream;
 import java.io.File;
@@ -133,7 +135,8 @@ public class VideoMediaCodec extends MediaCodecBase {
             }
         }
         catch (Exception e){
-
+            MyTools.writeSimpleLog("录屏线程出问题了");
+//            MainActivity.isRecording = false;
         }
         try {
             mEncoder.stop();

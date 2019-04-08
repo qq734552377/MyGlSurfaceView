@@ -16,7 +16,8 @@ public class ExceptionApplication extends Application {
 
     public static Context context;
     public static Logger gLogger;
-    public static Point SCREENPOINT = new Point(720,1080);
+    public static Point PREVIEWSCREENPOINT = new Point(640,360);
+    public static Point SCREENPOINT = new Point(800,450);
 
     static {
         System.loadLibrary("opencv_java3");
@@ -39,7 +40,7 @@ public class ExceptionApplication extends Application {
         WindowManager manager = (WindowManager) this.getSystemService(Context.WINDOW_SERVICE);
         Display display = manager.getDefaultDisplay();
 
-        display.getSize(SCREENPOINT);
+//        display.getSize(PREVIEWSCREENPOINT);
     }
     public static Context getInstance(){
         return context;

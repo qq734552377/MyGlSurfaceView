@@ -202,7 +202,8 @@ public class ApManager {
     public static void openHotspotWithNoPassword(Context context, String ssid) {
         closeWifi(context);
         if (isApOn(context)) {
-            closeAp(context);
+//            closeAp(context);
+            return;
         }
         openApWithNoPassword(context, ssid);
     }

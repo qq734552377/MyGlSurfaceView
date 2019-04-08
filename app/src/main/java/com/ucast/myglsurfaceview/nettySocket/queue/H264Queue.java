@@ -34,23 +34,23 @@ public class H264Queue {
     }
 
     private void myRun() {
-        synchronized (this){
+        synchronized (this) {
             try {
                 h264data one = h264Queue.poll();
-                if (one != null){
+                if (one != null) {
 //                    byte[] packageData = new byte[one.data.length + cut_paper_byte.length];
 //                    System.arraycopy(one.data,0,packageData,0,one.data.length);
 //                    System.arraycopy(cut_paper_byte,0,packageData,one.data.length,cut_paper_byte.length);
 //                    SenderTools.sendAllNetPrintClient(packageData);
-                    if( NetPrinterChannelMap.getMapSize() > 0) {
+                    if (NetPrinterChannelMap.getMapSize() > 0) {
 //                        sendAsString(one);
                         sendAsByte(one);
-//                        Thread.sleep(1);
+//                    Thread.sleep(1);
                     }
-                }else {
-                    Thread.sleep(1);
+                } else {
+                    Thread.sleep(2);
                 }
-            }catch (Exception e){
+            } catch (Exception e) {
 
             }
         }
@@ -76,6 +76,12 @@ public class H264Queue {
         }
     }
 
+    public h264data getItem(){
+        synchronized (this) {
+            h264data one = h264Queue.poll();
+            return one;
+        }
+    }
 
     public void putData(byte[] buffer) {
         if (h264Queue.size() >= queuesize) {

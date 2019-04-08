@@ -47,7 +47,11 @@ public class InfraredCameraInterface {
     }
 
     public void doOpenCamera(){
-        camera = Camera.open(0);
+        doStopCamera();
+        if (camera == null) {
+            MyTools.writeSimpleLogWithTime("开启相机1");
+            camera = Camera.open(1);
+        }
 
     }
 
@@ -58,14 +62,12 @@ public class InfraredCameraInterface {
     public void doStartPreview(SurfaceHolder surfaceHolder){
         if (camera != null) {
             try {
-                if (isPreview)
-                    doStopCamera();
 
                 initFromCameraParameters(camera);
                 Camera.Parameters parameters = camera.getParameters();
                 if (TakephotoActivity.ISPORTRAIT)
                     camera.setDisplayOrientation(90);
-//                camera.setDisplayOrientation(90);
+//                camera.setDisplayOrientation(270);
                 parameters.setPreviewSize(cameraResolution.x, cameraResolution.y);
 //                parameters.setPreviewSize(screenResolution.y, screenResolution.x);
 //                parameters.setPictureFormat(ImageFormat.JPEG);
@@ -81,6 +83,7 @@ public class InfraredCameraInterface {
                 camera.setPreviewDisplay(surfaceHolder);
                 camera.startPreview();
                 isPreview = true;
+                MyTools.writeSimpleLogWithTime("开启相机1 预览");
             } catch (IOException e) {
                 e.printStackTrace();
             }
@@ -92,7 +95,7 @@ public class InfraredCameraInterface {
     Camera.PictureCallback callback = new Camera.PictureCallback() {
         @Override
         public void onPictureTaken(byte[] data, Camera camera) {
-            MyTools.writeSimpleLogWithTime("相机数据过来  " + System.currentTimeMillis());
+//            MyTools.writeSimpleLogWithTime("相机数据过来  " + System.currentTimeMillis());
             if (Config.USESTRINGPATH){
                 String path =   Environment.getExternalStorageDirectory().toString() + "/Ucast/photo";
                 File folder=new File(path);
@@ -119,7 +122,7 @@ public class InfraredCameraInterface {
                         }
                     }
                 }
-                MyTools.writeSimpleLogWithTime("存储相机数据完成  " + System.currentTimeMillis());
+//                MyTools.writeSimpleLogWithTime("存储相机数据完成  " + System.currentTimeMillis());
                 if (isLedOn){
                     EventBus.getDefault().postSticky(new TakeLedOnPhotoResult(jpegName,ledId));
                 }else {
@@ -128,10 +131,10 @@ public class InfraredCameraInterface {
             }else {
 
                 Bitmap bitmap = BitmapFactory.decodeByteArray(data,0,data.length);
-                MyTools.writeSimpleLogWithTime("转换为bitmap数据完成  " + System.currentTimeMillis());
+//                MyTools.writeSimpleLogWithTime("转换为bitmap数据完成  " + System.currentTimeMillis());
                 Mat src = new Mat();
                 Utils.bitmapToMat(bitmap, src);
-                MyTools.writeSimpleLogWithTime("转换为mat数据完成  " + System.currentTimeMillis());
+//                MyTools.writeSimpleLogWithTime("转换为mat数据完成  " + System.currentTimeMillis());
                 if (isLedOn){
                     EventBus.getDefault().postSticky(new TakeLedOnPhotoResult(src,ledId));
                 }else {
@@ -150,7 +153,7 @@ public class InfraredCameraInterface {
         if (camera != null){
             if (!isPreview)
                 return;
-            MyTools.writeSimpleLogWithTime("准备相机  " + System.currentTimeMillis());
+//            MyTools.writeSimpleLogWithTime("准备相机  " + System.currentTimeMillis());
             Camera.Parameters parameters;
             try{
                 parameters = camera.getParameters();
@@ -169,7 +172,7 @@ public class InfraredCameraInterface {
             camera.setParameters(parameters);
             this.ledId = ledId;
             this.isLedOn = isLedOn;
-            MyTools.writeSimpleLogWithTime("设置参数完成  " + System.currentTimeMillis());
+//            MyTools.writeSimpleLogWithTime("设置参数完成  " + System.currentTimeMillis());
             camera.takePicture(null, null,callback );
         }
     }
@@ -178,8 +181,10 @@ public class InfraredCameraInterface {
 
     public void doStopCamera(){
         if (camera != null){
+            MyTools.writeSimpleLogWithTime("停止相机1");
             camera.stopPreview();
             camera.release();
+            camera = null;
             isPreview = false;
         }
     }

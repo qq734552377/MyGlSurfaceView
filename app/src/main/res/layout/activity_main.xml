@@ -17,6 +17,7 @@
         android:textColor="@color/colorAccent"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintTop_toTopOf="parent"
+        android:visibility="gone"
         />
     <Button
         android:id="@+id/change"
@@ -27,5 +28,6 @@
         app:layout_constraintRight_toRightOf="parent"
         android:layout_marginTop="20dp"
         android:layout_marginRight="20dp"
+        android:visibility="gone"
         />
 </android.support.constraint.ConstraintLayout>

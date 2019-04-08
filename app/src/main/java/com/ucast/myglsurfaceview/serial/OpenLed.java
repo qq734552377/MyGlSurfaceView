@@ -1,5 +1,6 @@
 package com.ucast.myglsurfaceview.serial;
 
+import com.ucast.myglsurfaceview.TakephotoActivity;
 import com.ucast.myglsurfaceview.exception.ExceptionApplication;
 import com.ucast.myglsurfaceview.tools.Config;
 import com.ucast.myglsurfaceview.tools.MyTools;
@@ -165,19 +166,21 @@ public class OpenLed {
     private void AnalyticalProtocol(byte[] buffer) {
         //添加串口数据
         jointBuffer(buffer);
-        MyTools.writeSimpleLog("加入缓存的数据： " + MyTools.printHexString(buffer));
+//        MyTools.writeSimpleLog("加入缓存的数据： " + MyTools.printHexString(buffer));
 //        ExceptionApplication.gLogger.info("所有的数据-->"+EpsonParseDemo.printHexString(buffer));
         while (offSet > 0) {
-            int startIndex = getIndexByByte((byte) 0x68);
+            int startIndex = getIndexByByte((byte) 0x24);
             if (startIndex <= -1)
                 break;
             if (startIndex >= fanhuiBuffer.length -1)
                 break;
             int datalen = fanhuiBuffer[startIndex + 1];
-            int endIndex = startIndex + datalen + 3 ;
+            if (datalen != 0x10)
+                break;
+            int endIndex = startIndex + datalen + 2 ;
             if (endIndex > fanhuiBuffer.length - 1)
                 break;
-            if (!sumJiaoYan(startIndex,endIndex))
+            if (!jiaoYan(startIndex + 2,endIndex))
                 break;
             byte[] printBuffer = getPrintbyte(startIndex , endIndex);
             MyTools.writeSimpleLog("解析出来的一条数据： " + MyTools.printHexString(printBuffer));
@@ -230,12 +233,12 @@ public class OpenLed {
         }
     }
 
-    public boolean sumJiaoYan(int start ,int end){
-        int sum = 0;
+    public boolean jiaoYan(int start , int end){
+        byte sum = 0;
         for (int i = start; i < end; i++) {
-            sum += fanhuiBuffer[i];
+            sum ^= fanhuiBuffer[i];
         }
-        return (sum & 0xFF) == fanhuiBuffer[end];
+        return ((byte)sum) == fanhuiBuffer[end];
     }
 
 
@@ -270,23 +273,16 @@ public class OpenLed {
     }
 
     private void serial(byte[] buffer) {
-        int dataLen = buffer[0];
-        int mode = buffer[1];
-        if ((dataLen + 2) == buffer.length){
-            switch (mode){
-                case 0x28://读卡的回复
-
-                    break;
-                case 0x29://写卡的回复
-
-                    break;
-
-
-                default:
-
-                    break;
-            }
-        }
+       int len = buffer.length;
+       if (len == 17){
+           MyTools.writeSimpleLog("TakephotoActivity.lock.notifyAll()： ");
+           byte[] idByte = new byte[]{buffer[1] ,buffer[2]};
+           String idStr = MyTools.printHexString(idByte);
+           int state = buffer[5];
+//           synchronized (TakephotoActivity.lock) {
+//               TakephotoActivity.lock.notifyAll();
+//            }
+       }
     }
 
 

@@ -18,7 +18,7 @@ public class DataNetPrinterInitializer extends ChannelInitializer {
 
     public void initChannel(Channel channel) {
         NetPrinterHandle handle = new NetPrinterHandle();
-        channel.pipeline().addLast("idleStateHandler", new IdleStateHandler(300000, 0,0, TimeUnit.MILLISECONDS));
+        channel.pipeline().addLast("idleStateHandler", new IdleStateHandler(300, 300,300, TimeUnit.SECONDS));
         channel.pipeline().addLast("handler", handle);
     }
 

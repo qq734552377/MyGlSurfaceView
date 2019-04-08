@@ -9,7 +9,7 @@ public class Config {
     public static int NET_PRINT_PORT = 8850;
     public static int PORTBAUDRATE = 115200;
     public static boolean ISDEBUG = true;
-    public static boolean USESTRINGPATH = true;
+    public static boolean USESTRINGPATH = false;
     public static boolean IsReplyToClient = true;
     public static String PORTPATH = "/dev/ttyS1";
 

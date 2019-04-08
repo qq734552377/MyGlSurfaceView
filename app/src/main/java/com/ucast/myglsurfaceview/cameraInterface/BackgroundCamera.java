@@ -95,11 +95,11 @@ public class BackgroundCamera {
 
     public void takePhotoWithParam(final String ledId, final boolean isLedOn){
         try {
-            MyTools.writeSimpleLogWithTime("准备相机  " + System.currentTimeMillis());
+//            MyTools.writeSimpleLogWithTime("准备相机  " + System.currentTimeMillis());
             camera.takePicture(null, null, new Camera.PictureCallback() {
                 @Override
                 public void onPictureTaken(byte[] data, Camera camera) {
-                    MyTools.writeSimpleLogWithTime("相机数据过来  " + System.currentTimeMillis());
+//                    MyTools.writeSimpleLogWithTime("相机数据过来  " + System.currentTimeMillis());
                     String path =   Environment.getExternalStorageDirectory().toString() + "/Ucast/photo";
                     File folder=new File(path);
                     if(!folder.exists()){
@@ -129,7 +129,7 @@ public class BackgroundCamera {
                     }
                     camera.stopPreview();
                     camera.startPreview();
-                    MyTools.writeSimpleLogWithTime("存储相机数据完成  " + System.currentTimeMillis());
+//                    MyTools.writeSimpleLogWithTime("存储相机数据完成  " + System.currentTimeMillis());
                     if (isLedOn){
                         EventBus.getDefault().postSticky(new TakeLedOnPhotoResult(jpegName,ledId));
                     }else {

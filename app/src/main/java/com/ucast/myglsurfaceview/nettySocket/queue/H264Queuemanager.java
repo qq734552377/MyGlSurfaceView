@@ -11,7 +11,7 @@ public class H264Queuemanager {
     private static H264Queuemanager h264Queuemanager = null;
     private H264Queuemanager() {
         for (int i = 0; i < 1; i++) {
-            H264Queue one = new H264Queue(3);
+            H264Queue one = new H264Queue(1);
             queues.add(one);
         }
     }

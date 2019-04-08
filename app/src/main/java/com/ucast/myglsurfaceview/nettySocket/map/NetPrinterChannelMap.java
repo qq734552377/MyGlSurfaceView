@@ -1,6 +1,8 @@
 package com.ucast.myglsurfaceview.nettySocket.map;
 
 
+import com.ucast.myglsurfaceview.tools.MyTools;
+
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -15,6 +17,7 @@ public class NetPrinterChannelMap {
     public static Map<String, Channel> map = new ConcurrentHashMap<String, Channel>();
 
     public static void Add(Channel channel) {
+        MyTools.writeSimpleLog("客户端连接过来了--》" + channel.id());
         map.put(channel.id().toString(), channel);
     }
 
@@ -28,6 +31,7 @@ public class NetPrinterChannelMap {
     }
 
     public static void Remove(String key) {
+        MyTools.writeSimpleLog("客户端连接断开了--》" + key);
         map.remove(key);
     }
     public static Set<Map.Entry<String, Channel>> ToList()

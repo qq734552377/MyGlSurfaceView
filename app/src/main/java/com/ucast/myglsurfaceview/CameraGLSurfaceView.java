@@ -8,6 +8,7 @@ import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Color;
+import android.graphics.Point;
 import android.graphics.SurfaceTexture;
 import android.opengl.GLES11Ext;
 import android.opengl.GLES20;
@@ -18,6 +19,7 @@ import android.os.Environment;
 import android.util.AttributeSet;
 import android.util.Log;
 
+import com.ucast.myglsurfaceview.beans.BoxMsg;
 import com.ucast.myglsurfaceview.cameraInterface.CameraInterface;
 import com.ucast.myglsurfaceview.rect.PicGLRender;
 import com.ucast.myglsurfaceview.rect.GLHelper;
@@ -32,6 +34,7 @@ import java.nio.ByteBuffer;
 import java.nio.IntBuffer;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 public class CameraGLSurfaceView extends GLSurfaceView implements Renderer, SurfaceTexture.OnFrameAvailableListener {
     private static final String TAG = "yanzi";
@@ -53,20 +56,53 @@ public class CameraGLSurfaceView extends GLSurfaceView implements Renderer, Surf
     ArrayList<float[]> matixs = new ArrayList<>();
     ArrayList<Bitmap> bmps = new ArrayList<>();
 
+
+
     public CameraGLSurfaceView(Context context, AttributeSet attrs) {
         super(context, attrs);
         // TODO Auto-generated constructor stub
         mContext = context;
         setEGLContextClientVersion(2);
         setRenderer(this);
-        setRenderMode(RENDERMODE_CONTINUOUSLY);
+        setRenderMode(RENDERMODE_WHEN_DIRTY);
 //        try {
 //            bitmap = BitmapFactory.decodeStream(context.getAssets().open("models/girl.jpg"));
 //        } catch (IOException e) {
 //            e.printStackTrace();
 //        }
 
+        initTakePhotoMsg();
+//        initMyMsg();
 
+//        myRenderer = new MyRenderer();
+    }
+    public void initTakePhotoMsg(){
+        if(TakephotoActivity.boxs.isEmpty())
+            return;
+
+        StringBuilder sb = new StringBuilder();
+        for(Map.Entry<String, BoxMsg> item : TakephotoActivity.boxs.entrySet()){
+            BoxMsg one = item.getValue();
+            Point p = one.getPointInScreen();
+            if (p == null)
+                continue;
+            if (p.x==0 && p.y==0)
+                continue;
+            //显示的信息
+            Bitmap oneBit = BitmapFactory.decodeFile(one.getShowPic());
+            bmps.add(oneBit);
+
+            float[] roateM = new float[16];
+            Matrix.setIdentityM(roateM, 0);
+            float[] pFloat = MyTools.getPicPosition(p);
+            Matrix.translateM(roateM, 0, pFloat[0], pFloat[1], 0);
+            float[] vertexRect = MyTools.getPicVertex(oneBit.getWidth(),oneBit.getHeight());
+            PicGLRender picGLRender = new PicGLRender(roateM,vertexRect);
+            picGLRenders.add(picGLRender);
+        }
+    }
+
+    public void initMyMsg(){
         for (int i = 0; i < 6; i++) {
             int bgColor = Color.WHITE;
             switch (i%5){
@@ -91,9 +127,9 @@ public class CameraGLSurfaceView extends GLSurfaceView implements Renderer, Surf
             }
             //显示的信息
             Bitmap oneBit = BitCreateTools.getBitMapByStringReturnBitmaPath("Number:" + i + 1
-                + "\nWeight:" + (i+15) +"0 kg"
-                + "\nCountry:" + (i+35) +" s",
-                bgColor
+                            + "\nWeight:" + (i+15) +"0 kg"
+                            + "\nCountry:" + (i+35) +" s",
+                    bgColor
             );
             bmps.add(oneBit);
 
@@ -104,14 +140,13 @@ public class CameraGLSurfaceView extends GLSurfaceView implements Renderer, Surf
             PicGLRender picGLRender = new PicGLRender(roateM,vertexRect);
             picGLRenders.add(picGLRender);
         }
-
-//        myRenderer = new MyRenderer();
     }
 
     @Override
     public void onSurfaceCreated(GL10 gl, EGLConfig config) {
         // TODO Auto-generated method stub
         Log.i(TAG, "onSurfaceCreated...");
+        MyTools.writeSimpleLogWithTime("GLView onSurfaceCreated");
         mTextureID = createTextureID();
         mSurface = new SurfaceTexture(mTextureID);
         mSurface.setOnFrameAvailableListener(this);
@@ -128,6 +163,7 @@ public class CameraGLSurfaceView extends GLSurfaceView implements Renderer, Surf
             textureIDs.add(mTextureId_RECT);
             oneTexture.recycle();
         }
+        bmps.clear();
     }
 
     @Override
@@ -154,6 +190,7 @@ public class CameraGLSurfaceView extends GLSurfaceView implements Renderer, Surf
         mSurface.updateTexImage();
         float[] mtx = new float[16];
         mSurface.getTransformMatrix(mtx);
+
         mDirectDrawer.draw(mtx);
 //        myRenderer.onDrawFrame();
         for (int i = 0; i < picGLRenders.size(); i++) {
@@ -258,7 +295,6 @@ public class CameraGLSurfaceView extends GLSurfaceView implements Renderer, Surf
 
     @Override
     public void onPause() {
-        // TODO Auto-generated method stub
         super.onPause();
         CameraInterface.getInstance().doStopCamera();
     }

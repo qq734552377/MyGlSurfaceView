@@ -1,28 +1,38 @@
 package com.ucast.myglsurfaceview;
 
+import android.app.Activity;
 import android.content.Context;
+import android.content.Intent;
 import android.graphics.Point;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
+import android.media.projection.MediaProjection;
+import android.media.projection.MediaProjectionManager;
 import android.opengl.Matrix;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.Display;
+import android.view.KeyEvent;
 import android.view.View;
 import android.view.WindowManager;
 import android.widget.TextView;
+import android.widget.Toast;
 
+import com.ucast.myglsurfaceview.cameraInterface.CameraInterface;
 import com.ucast.myglsurfaceview.exception.ExceptionApplication;
+import com.ucast.myglsurfaceview.nettySocket.h264.ScreenRecord;
+import com.ucast.myglsurfaceview.tools.ApManager;
 import com.ucast.myglsurfaceview.tools.FullScreenHelper;
+import com.ucast.myglsurfaceview.tools.ToastUtil;
 
 public class MainActivity extends AppCompatActivity implements SensorEventListener {
-    public static boolean ISPORTRAIT = true;
+    public static boolean ISPORTRAIT = false;
     CameraGLSurfaceView gl;
 
-    public static int FRAMECALLBACKWIDTH = 720;
-    public static int FRAMECALLBACKHEIGHT = 1280;
+    public static int FRAMECALLBACKWIDTH = 1024;
+    public static int FRAMECALLBACKHEIGHT = 600;
 
     private SensorManager mSensorManager;
     private Sensor mRotation;
@@ -33,7 +43,10 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
     private float[] matrix=new float[16];
 
-
+    private MediaProjectionManager mMediaProjectionManager;
+    private boolean isRecording = false;
+    private ScreenRecord mScreenRecord;
+    public static final int REQUEST_CODE_A = 10001;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -55,10 +68,16 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
         Matrix.setIdentityM(matrix,0);
 
+        initVideoSomething();
+        ApManager.openHotspotWithNoPassword(this,"firefly");
+    }
 
-
-//        Matrix.translateM(matrix,0,0.9f,-0.9f,0);
-//        gl.setMatrix(matrix);
+    public void initVideoSomething(){
+        Intent ootStartIntent = new Intent(this, UpdateService.class);
+        ootStartIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        this.startService(ootStartIntent);
+        initMPManager();
+        startScreenCapture();
     }
 
     @Override
@@ -76,13 +95,14 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     @Override
     protected void onPause() {
         mSensorManager.unregisterListener(this);
+        CameraInterface.getInstance().doStopCamera();
         super.onPause();
     }
 
     @Override
     protected void onDestroy() {
-        super.onDestroy();
         gl.onPause();
+        super.onDestroy();
     }
     // 将纳秒转化为秒
     private static final float NS2S = 1.0f / 1000000000.0f;
@@ -92,44 +112,8 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     private float angle[] =new float[3];
     @Override
     public void onSensorChanged(SensorEvent event) {
-//        DecimalFormat fnum = new DecimalFormat( "##0.00 ");
-//        float x = Float.valueOf(fnum.format(event.values[0]));
-//        float y = Float.valueOf(fnum.format(event.values[1]));
-//        float z = Float.valueOf(fnum.format(event.values[2]));
-//
-////        float x = (float)Math.toDegrees(event.values[0]);
-////        float y = (float)Math.toDegrees(event.values[1]);
-////        float z = (float)Math.toDegrees(event.values[2]);
-//        if (firstTime){
-//            firstX = x;
-//            firstY = y;
-//            firstTime = false;
-//            return;
-//        }
-//        float distanceX = firstX - x;
-//        float distanceY = firstY - y;
-//        if (gl != null){
-//            if (Math.abs(distanceX) < 0.05 || Math.abs(distanceX) < 0.05)
-//                return;
-//            gl.updateFilterPosition(distanceX,distanceY);
-//        }
-//        msg.setText("x->" + x + "\ny->" + y + "\nz->" + z);
-
-//        SensorManager.getRotationMatrixFromVector(matrix,event.values);
-//
-//        StringBuilder sb = new StringBuilder();
-//        DecimalFormat fnum = new DecimalFormat( "##0.00 ");
-//        for (int i = 0; i < matrix.length; i++) {
-//            sb.append(fnum.format(matrix[i]) + ",");
-//        }
-//        msg.setText(sb.toString());
-
-
         //从 x、y、z 轴的正向位置观看处于原始方位的设备，如果设备逆时针旋转，将会收到正值；否则，为负值
-//
-
         if(timestamp != 0) {
-
             // 得到两次检测到手机旋转的时间差（纳秒），并将其转化为秒
             final float dT = (event.timestamp - timestamp) * NS2S;
 
@@ -151,7 +135,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
             Matrix.setIdentityM(matrix,0);
 //            Matrix.translateM(matrix,0,-1.5f * anglex * 0.02f,1.0f * angley * -0.02f,0);//银联相机
-            Matrix.translateM(matrix,0,1.5f * angley * 0.01f,1.0f * anglex * -0.01f,0);
+            Matrix.translateM(matrix,0,1.5f * angley * 0.01f,1.0f * anglex * 0.01f,0);
             gl.updateMatrix(matrix);
             msg.setText("anglex------------>" + anglex + "\nangley------------>" + angley + "\nanglez------------>" + anglez
                         + "\n DT->" + dT
@@ -164,5 +148,81 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     @Override
     public void onAccuracyChanged(Sensor sensor, int accuracy) {
 
+    }
+
+
+    /**
+     * 初始化MediaProjectionManager
+     * **/
+    private void initMPManager(){
+        mMediaProjectionManager = (MediaProjectionManager) getSystemService(MEDIA_PROJECTION_SERVICE);
+    }
+
+
+    /**
+     * 开始截屏
+     * **/
+    private void startScreenCapture(){
+        if (!isRecording) {
+            Intent captureIntent = mMediaProjectionManager.createScreenCaptureIntent();
+            startActivityForResult(captureIntent, REQUEST_CODE_A);
+        }
+    }
+
+
+    /**
+     * 停止截屏
+     * **/
+    private void stopScreenCapture(){
+        isRecording = false;
+        mScreenRecord.release();
+    }
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        if (requestCode == REQUEST_CODE_A) {
+            try {
+                MediaProjection mediaProjection = mMediaProjectionManager.getMediaProjection(resultCode, data);
+                if (mediaProjection == null) {
+                    Toast.makeText(this, "程序发生错误:MediaProjection@1", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+                mScreenRecord = new ScreenRecord(this, mediaProjection);
+                mScreenRecord.start();
+                isRecording = true;
+            } catch (Exception e) {
+
+            }
+        }
+    }
+
+    public void starRecodeScreen(){
+//        try {
+//
+//            MediaProjection mediaProjection = mMediaProjectionManager.getMediaProjection(Activity.RESULT_OK, data);
+//            if (mediaProjection == null) {
+//                Toast.makeText(this, "程序发生错误:MediaProjection@1", Toast.LENGTH_SHORT).show();
+//                return;
+//            }
+//            mScreenRecord = new ScreenRecord(this, mediaProjection);
+//            mScreenRecord.start();
+//            isRecording = true;
+//        } catch (Exception e) {
+//
+//        }
+    }
+
+    @Override
+    public boolean onKeyDown(int keyCode, KeyEvent event) {
+        if (keyCode == KeyEvent.KEYCODE_F3){
+            finish();
+            ToastUtil.showToast(this,"ARActivity F3 Clicked");
+            return true;
+        }
+        if (keyCode == KeyEvent.KEYCODE_BACK){
+            finish();
+            ToastUtil.showToast(this,"ARActivity Back Clicked");
+            return true;
+        }
+        return super.onKeyDown(keyCode, event);
     }
 }

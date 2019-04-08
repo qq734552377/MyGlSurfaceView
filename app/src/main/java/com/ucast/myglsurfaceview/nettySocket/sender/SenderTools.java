@@ -21,7 +21,7 @@ public class SenderTools {
         for (Iterator iter = set.iterator(); iter.hasNext(); ) {
             Map.Entry entry = (Map.Entry) iter.next();
             Channel value = (Channel) entry.getValue();
-            if (value == null)
+            if (value == null || !value.isActive())
                 return false;
             ByteBuf resp = Unpooled.copiedBuffer(Data);
             value.writeAndFlush(resp);

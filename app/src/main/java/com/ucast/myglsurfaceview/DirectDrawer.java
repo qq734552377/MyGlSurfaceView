@@ -14,9 +14,10 @@ public class DirectDrawer {
             "attribute vec4 vPosition;" +
                     "attribute vec2 inputTextureCoordinate;" +
                     "varying vec2 textureCoordinate;" +
+                    "uniform mat4 uRotateMatrix;\n" +
                     "void main()" +
                     "{"+
-                    "gl_Position = vPosition;"+
+                    "gl_Position = uRotateMatrix*vPosition;"+
                     "textureCoordinate = inputTextureCoordinate;" +
                     "}";
 
@@ -55,11 +56,20 @@ public class DirectDrawer {
             1.0f, 0.0f,
             0.0f, 0.0f,
     };
+    static float textureVertices_fanzhuan[] = {
+            0.0f, 0.0f,
+            1.0f, 0.0f,
+            1.0f, 1.0f,
+            0.0f, 1.0f,
+    };
 
     private int texture;
-
+    private int mHRotateMatrix;
+    private float[] mRotateMatrix=new float[16];
     public DirectDrawer(int texture) {
         this.texture = texture;
+        Matrix.setIdentityM(mRotateMatrix,0);
+        Matrix.rotateM(mRotateMatrix,0,180,0,0,1);
         // initialize vertex byte buffer for shape coordinates
         ByteBuffer bb = ByteBuffer.allocateDirect(squareCoords.length * 4);
         bb.order(ByteOrder.nativeOrder());
@@ -87,29 +97,33 @@ public class DirectDrawer {
         GLES20.glAttachShader(mProgram, vertexShader);   // add the vertex shader to program
         GLES20.glAttachShader(mProgram, fragmentShader); // add the fragment shader to program
         GLES20.glLinkProgram(mProgram);                  // creates OpenGL ES program executables
+        mHRotateMatrix=GLES20.glGetUniformLocation(mProgram,"uRotateMatrix");
+        // get handle to vertex shader's vPosition member
+        mPositionHandle = GLES20.glGetAttribLocation(mProgram, "vPosition");
+        mTextureCoordHandle = GLES20.glGetAttribLocation(mProgram, "inputTextureCoordinate");
     }
 
     public void draw(float[] mtx) {
+
+
         GLES20.glUseProgram(mProgram);
 
         GLES20.glActiveTexture(GLES20.GL_TEXTURE0);
         GLES20.glBindTexture(GLES11Ext.GL_TEXTURE_EXTERNAL_OES, texture);
 
-        // get handle to vertex shader's vPosition member
-        mPositionHandle = GLES20.glGetAttribLocation(mProgram, "vPosition");
+
 
         // Enable a handle to the triangle vertices
         GLES20.glEnableVertexAttribArray(mPositionHandle);
-
         // Prepare the <insert shape here> coordinate data
         GLES20.glVertexAttribPointer(mPositionHandle, COORDS_PER_VERTEX, GLES20.GL_FLOAT, false, vertexStride, vertexBuffer);
-
-        mTextureCoordHandle = GLES20.glGetAttribLocation(mProgram, "inputTextureCoordinate");
-        GLES20.glEnableVertexAttribArray(mTextureCoordHandle);
-
 //        textureVerticesBuffer.clear();
 //        textureVerticesBuffer.put( transformTextureCoordinates( textureVertices, mtx ));
 //        textureVerticesBuffer.position(0);
+        //翻转180度
+        GLES20.glUniformMatrix4fv(mHRotateMatrix,1,false,mRotateMatrix,0);
+
+        GLES20.glEnableVertexAttribArray(mTextureCoordHandle);
         GLES20.glVertexAttribPointer(mTextureCoordHandle, COORDS_PER_VERTEX, GLES20.GL_FLOAT, false, vertexStride, textureVerticesBuffer);
 
         GLES20.glDrawElements(GLES20.GL_TRIANGLES, drawOrder.length, GLES20.GL_UNSIGNED_SHORT, drawListBuffer);

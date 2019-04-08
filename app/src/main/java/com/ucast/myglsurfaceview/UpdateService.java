@@ -13,6 +13,7 @@ import org.greenrobot.eventbus.EventBus;
 public class UpdateService extends Service {
     private Thread videoServer;
     private NioNetPrintServer server;
+    public static boolean isStart = false;
     public UpdateService() {
     }
 
@@ -31,9 +32,12 @@ public class UpdateService extends Service {
         startForeground(0, notification);
         super.onCreate();
         MyTools.writeSimpleLogWithTime("服务开启了");
+        if (isStart)
+            return;
         server = new NioNetPrintServer();
         videoServer = new Thread(server);
         videoServer.start();
+        isStart = true;
 //        EventBus.getDefault().register(this);
     }
 
@@ -45,6 +49,10 @@ public class UpdateService extends Service {
         Intent localIntent = new Intent();
         localIntent.setClass(this, UpdateService.class);
 //        EventBus.getDefault().unregister(this);
+        isStart= false;
+        if (server != null){
+            server.Close();
+        }
         this.startService(localIntent);    //销毁时重新启动Service
     }
 }

@@ -8,13 +8,13 @@ public class Constant {
 
     public static final String MIME_TYPE = "video/avc";
 
-    public static final int VIDEO_WIDTH = 1280 ;
+    public static final int VIDEO_WIDTH = 640 ;
 
-    public static final int VIDEO_HEIGHT = 720;
+    public static final int VIDEO_HEIGHT = 360;
 
     public static final int VIDEO_DPI = 1;
 
-    public static final int VIDEO_BITRATE = 100000 * 20;
+    public static final int VIDEO_BITRATE = 100000 * 3;
 
     public static final int VIDEO_FRAMERATE = 15;
 
