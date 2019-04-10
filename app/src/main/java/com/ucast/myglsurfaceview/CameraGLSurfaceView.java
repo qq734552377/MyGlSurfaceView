@@ -61,6 +61,7 @@ public class CameraGLSurfaceView extends GLSurfaceView implements Renderer, Surf
 
     public CameraGLSurfaceView(Context context, AttributeSet attrs) {
         super(context, attrs);
+        MyTools.copyCfg(context,"port1.jpg","port2.jpg","port3.jpg");
         // TODO Auto-generated constructor stub
         mContext = context;
         setEGLContextClientVersion(2);
