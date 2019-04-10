@@ -162,15 +162,13 @@ public class TakephotoActivity extends AppCompatActivity implements SurfaceHolde
     @Override
     protected void onResume() {
         super.onResume();
-//        float[] a= MyTools.getPicPosition(new Point(400,500));
-//        float[] b=MyTools.getPicPosition(new Point(200,100));
-//        float[] c=MyTools.getPicPosition(new Point(600,400));
+
     }
 
     @Override
     protected void onPause() {
         super.onPause();
-
+        InfraredCameraInterface.getInstance().doStopCamera();
     }
 
     @Override
@@ -192,6 +190,11 @@ public class TakephotoActivity extends AppCompatActivity implements SurfaceHolde
 
     }
 
+    @Override
+    public void surfaceDestroyed(SurfaceHolder holder) {
+
+    }
+
     @Subscribe(threadMode = ThreadMode.BACKGROUND,sticky = true)
     public void handleCameraTakeOk(TakeLedOffPhotoResult takeLedOffPhotoResult){//拍摄完led 关闭时的照片完成后的操作
         BoxMsg one = boxs.get(takeLedOffPhotoResult.getLedId());
@@ -210,7 +213,7 @@ public class TakephotoActivity extends AppCompatActivity implements SurfaceHolde
             // 开灯
             openLed.Send(Config.OPENLED);
             try {
-                Thread.sleep(30);
+                Thread.sleep(50);
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
@@ -237,7 +240,7 @@ public class TakephotoActivity extends AppCompatActivity implements SurfaceHolde
             // 关灯
             openLed.Send(Config.CLOSELED);
             try {
-                Thread.sleep(30);
+                Thread.sleep(50);
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
@@ -245,11 +248,6 @@ public class TakephotoActivity extends AppCompatActivity implements SurfaceHolde
         synchronized (lock) {
             lock.notifyAll();
         }
-    }
-
-    @Override
-    public void surfaceDestroyed(SurfaceHolder holder) {
-        InfraredCameraInterface.getInstance().doStopCamera();
     }
 
 
@@ -303,7 +301,7 @@ public class TakephotoActivity extends AppCompatActivity implements SurfaceHolde
 
     @Subscribe(threadMode = ThreadMode.MAIN,sticky = true)
     public void startARActivity(StartArEvent event){
-
+        InfraredCameraInterface.getInstance().doStopCamera();
         isTaking = false;
         int l  = boxs.size();
 //        ToastUtil.showToast(TakephotoActivity.this,"拍照完成-》" + boxs.get("BA 0A").getPointInScreen());
@@ -312,8 +310,7 @@ public class TakephotoActivity extends AppCompatActivity implements SurfaceHolde
             MyTools.writeSimpleLog(one.getLedId() + "  点位置--》" + one.getPointInScreen() );
         }
         MyTools.writeSimpleLog("------------------------>");
-        InfraredCameraInterface.getInstance().doStopCamera();
-        CameraInterface.getInstance();
+
         try{
             Thread.sleep(500);
         }catch (Exception e){

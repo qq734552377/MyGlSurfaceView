@@ -30,7 +30,7 @@ import com.ucast.myglsurfaceview.tools.MyTools;
 import com.ucast.myglsurfaceview.tools.ToastUtil;
 
 public class MainActivity extends AppCompatActivity implements SensorEventListener {
-    public static boolean ISPORTRAIT = false;
+    public static boolean ISPORTRAIT = true;
     CameraGLSurfaceView gl;
 
     public static int FRAMECALLBACKWIDTH = 1024;
@@ -54,6 +54,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        MyTools.copyCfg(this,"port1.jpg","port2.jpg","port3.jpg");
         gl =(CameraGLSurfaceView) findViewById(R.id.gl_view);
         msg = findViewById(R.id.msg);
         mSensorManager=(SensorManager)getSystemService(Context.SENSOR_SERVICE);
@@ -110,8 +111,12 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     private static final float NS2S = 1.0f / 1000000000.0f;
 
     private float timestamp;
-
+    private float[] sdAll = new float[3];
     private float angle[] =new float[3];
+    private float x_coefficient = 0.01f;
+    private float y_coefficient = -0.01f;
+    private float lowvalue = 0.02f;
+    private int iCount = 0;
     @Override
     public void onSensorChanged(SensorEvent event) {
         //从 x、y、z 轴的正向位置观看处于原始方位的设备，如果设备逆时针旋转，将会收到正值；否则，为负值
@@ -119,8 +124,23 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
             // 得到两次检测到手机旋转的时间差（纳秒），并将其转化为秒
             final float dT = (event.timestamp - timestamp) * NS2S;
 
-            // 将手机在各个轴上的旋转角度相加，即可得到当前位置相对于初始位置的旋转弧度
+//            if(iCount < 10)
+//            {
+//                sdAll[0] += event.values[0]* dT;
+//                sdAll[1] += event.values[1]* dT;
+//                sdAll[2] += event.values[2]* dT;
+//                timestamp = event.timestamp;
+//                iCount ++;
+//                return;
+//            }
+//            angle[0] = sdAll[0]  ;
+//
+//            angle[1] = sdAll[1]  ;
+//
+//            angle[2] = sdAll[2]  ;
 
+            // 将手机在各个轴上的旋转角度相加，即可得到当前位置相对于初始位置的旋转弧度
+//
             angle[0] = event.values[0] * dT;
 
             angle[1] = event.values[1] * dT;
@@ -135,16 +155,24 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
             float anglez = (float) Math.toDegrees(angle[2]);
 
-            Matrix.setIdentityM(matrix,0);
+//            if (anglex > lowvalue || anglex < -lowvalue || angley > lowvalue || angley < -lowvalue){
+                Matrix.setIdentityM(matrix,0);
 //            Matrix.translateM(matrix,0,-1.5f * anglex * 0.02f,1.0f * angley * -0.02f,0);//银联相机
-            Matrix.translateM(matrix,0,1.5f * angley * 0.01f,1.0f * anglex * 0.01f,0);
-            gl.updateMatrix(matrix);
-            msg.setText("anglex------------>" + anglex + "\nangley------------>" + angley + "\nanglez------------>" + anglez
+                Matrix.translateM(matrix,0,4.5f * angley * x_coefficient,1.0f * anglex * y_coefficient,0);
+                gl.updateMatrix(matrix);
+                msg.setText("anglex------------>" + anglex + "\nangley------------>" + angley + "\nanglez------------>" + anglez
                         + "\n DT->" + dT
-            );
+                );
+//            }
+
+
         }
         //将当前时间赋值给timestamp
         timestamp = event.timestamp;
+//        sdAll[0] = 0;
+//        sdAll[1] = 0;
+//        sdAll[2] = 0;
+//        iCount = 0;
     }
 
     @Override

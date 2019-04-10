@@ -69,7 +69,8 @@ public class DirectDrawer {
     public DirectDrawer(int texture) {
         this.texture = texture;
         Matrix.setIdentityM(mRotateMatrix,0);
-        Matrix.rotateM(mRotateMatrix,0,180,0,0,1);
+        //旋转摄像头过来的数据   需要调整
+        Matrix.rotateM(mRotateMatrix,0,270,0,0,1);
         // initialize vertex byte buffer for shape coordinates
         ByteBuffer bb = ByteBuffer.allocateDirect(squareCoords.length * 4);
         bb.order(ByteOrder.nativeOrder());

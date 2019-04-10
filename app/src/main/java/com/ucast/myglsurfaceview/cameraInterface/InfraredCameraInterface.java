@@ -42,12 +42,13 @@ public class InfraredCameraInterface {
 
     private String ledId;
     private boolean isLedOn;
+
     public static InfraredCameraInterface getInstance() {
         return cameraInterface;
     }
 
-    public void doOpenCamera(){
-        doStopCamera();
+    public void doOpenCamera() {
+        CameraInterface.getInstance().doStopCamera();
         if (camera == null) {
             MyTools.writeSimpleLogWithTime("开启相机1");
             camera = Camera.open(1);
@@ -55,11 +56,11 @@ public class InfraredCameraInterface {
 
     }
 
-    public boolean isPreviewing(){
+    public boolean isPreviewing() {
         return isPreview;
     }
 
-    public void doStartPreview(SurfaceHolder surfaceHolder){
+    public void doStartPreview(SurfaceHolder surfaceHolder) {
         if (camera != null) {
             try {
 
@@ -67,18 +68,19 @@ public class InfraredCameraInterface {
                 Camera.Parameters parameters = camera.getParameters();
                 if (TakephotoActivity.ISPORTRAIT)
                     camera.setDisplayOrientation(90);
-//                camera.setDisplayOrientation(270);
+                camera.setDisplayOrientation(90);
                 parameters.setPreviewSize(cameraResolution.x, cameraResolution.y);
 //                parameters.setPreviewSize(screenResolution.y, screenResolution.x);
 //                parameters.setPictureFormat(ImageFormat.JPEG);
                 //设置图片预览的格式
 //                parameters.setPreviewFormat(PixelFormat.RGBA_8888);
 //                setZoom(parameters);
-//                List<Camera.Size> list = parameters.getSupportedPictureSizes();
-//                int paramPosition = 0;
-//                final Camera.Size size = list.get(paramPosition);
-//                //设置照片分辨率，注意要在摄像头支持的范围内选择
-//                parameters.setPictureSize(size.width,size.height);
+                List<Camera.Size> list = parameters.getSupportedPictureSizes();
+                int paramPosition = 0;
+                final Camera.Size size = list.get(paramPosition);
+                //设置照片分辨率，注意要在摄像头支持的范围内选择
+                parameters.setPictureSize(size.width,size.height);
+//                parameters.setPictureSize(size.height,size.width);
                 camera.setParameters(parameters);
                 camera.setPreviewDisplay(surfaceHolder);
                 camera.startPreview();
@@ -96,25 +98,26 @@ public class InfraredCameraInterface {
         @Override
         public void onPictureTaken(byte[] data, Camera camera) {
 //            MyTools.writeSimpleLogWithTime("相机数据过来  " + System.currentTimeMillis());
-            if (Config.USESTRINGPATH){
-                String path =   Environment.getExternalStorageDirectory().toString() + "/Ucast/photo";
-                File folder=new File(path);
-                if(!folder.exists()){
-                    boolean isOk =  folder.mkdirs();
+            if (Config.USESTRINGPATH) {
+                String path = Environment.getExternalStorageDirectory().toString() + "/Ucast/photo";
+                File folder = new File(path);
+                if (!folder.exists()) {
+                    boolean isOk = folder.mkdirs();
                     if (!isOk)
                         return;
                 }
                 long dataTake = System.currentTimeMillis();
-                final String jpegName = path + "/" + dataTake +".jpg";
-                File file=new File(jpegName);
-                FileOutputStream fos=null;
+                final String jpegName = path + "/" + dataTake + ".jpg";
+                File file = new File(jpegName);
+                FileOutputStream fos = null;
                 try {
-                    fos=new FileOutputStream(file);
+                    fos = new FileOutputStream(file);
                     fos.write(data);
+                    fos.flush();
                 } catch (Exception e) {
                     e.printStackTrace();
-                }finally{
-                    if (fos!=null) {
+                } finally {
+                    if (fos != null) {
                         try {
                             fos.close();
                         } catch (IOException e) {
@@ -123,64 +126,63 @@ public class InfraredCameraInterface {
                     }
                 }
 //                MyTools.writeSimpleLogWithTime("存储相机数据完成  " + System.currentTimeMillis());
-                if (isLedOn){
-                    EventBus.getDefault().postSticky(new TakeLedOnPhotoResult(jpegName,ledId));
-                }else {
-                    EventBus.getDefault().postSticky(new TakeLedOffPhotoResult(jpegName,ledId));
+                if (isLedOn) {
+                    EventBus.getDefault().postSticky(new TakeLedOnPhotoResult(jpegName, ledId));
+                } else {
+                    EventBus.getDefault().postSticky(new TakeLedOffPhotoResult(jpegName, ledId));
                 }
-            }else {
+            } else {
 
-                Bitmap bitmap = BitmapFactory.decodeByteArray(data,0,data.length);
+                Bitmap bitmap = BitmapFactory.decodeByteArray(data, 0, data.length);
 //                MyTools.writeSimpleLogWithTime("转换为bitmap数据完成  " + System.currentTimeMillis());
                 Mat src = new Mat();
                 Utils.bitmapToMat(bitmap, src);
 //                MyTools.writeSimpleLogWithTime("转换为mat数据完成  " + System.currentTimeMillis());
-                if (isLedOn){
-                    EventBus.getDefault().postSticky(new TakeLedOnPhotoResult(src,ledId));
-                }else {
-                    EventBus.getDefault().postSticky(new TakeLedOffPhotoResult(src,ledId));
+                if (isLedOn) {
+                    EventBus.getDefault().postSticky(new TakeLedOnPhotoResult(src, ledId));
+                } else {
+                    EventBus.getDefault().postSticky(new TakeLedOffPhotoResult(src, ledId));
                 }
             }
 
-            camera.stopPreview();
+//            camera.stopPreview();
             camera.startPreview();
 
         }
 
     };
 
-    public void takePhoto(String ledId, final boolean isLedOn){
-        if (camera != null){
+    public void takePhoto(String ledId, final boolean isLedOn) {
+        if (camera != null) {
             if (!isPreview)
                 return;
 //            MyTools.writeSimpleLogWithTime("准备相机  " + System.currentTimeMillis());
-            Camera.Parameters parameters;
-            try{
-                parameters = camera.getParameters();
-            }catch(Exception e){
-                e.printStackTrace();
-                return;
-            }
+//            Camera.Parameters parameters;
+//            try{
+//                parameters = camera.getParameters();
+//            }catch(Exception e){
+//                e.printStackTrace();
+//                return;
+//            }
             //获取摄像头支持的各种分辨率,因为摄像头数组不确定是按降序还是升序，这里的逻辑有时不是很好找得到相应的尺寸
             //可先确定是按升还是降序排列，再进对对比吧，我这里拢统地找了个，是个不精确的...
-            List<Camera.Size> list = parameters.getSupportedPictureSizes();
-            int paramPosition = 0;
-            final Camera.Size size = list.get(paramPosition);
-            //设置照片分辨率，注意要在摄像头支持的范围内选择
-            parameters.setPictureSize(size.width,size.height);
+//            List<Camera.Size> list = parameters.getSupportedPictureSizes();
+//            int paramPosition = 0;
+//            final Camera.Size size = list.get(paramPosition);
+//            //设置照片分辨率，注意要在摄像头支持的范围内选择
+//            parameters.setPictureSize(size.width,size.height);
             //设置照相机参数
-            camera.setParameters(parameters);
+//            camera.setParameters(parameters);
             this.ledId = ledId;
             this.isLedOn = isLedOn;
 //            MyTools.writeSimpleLogWithTime("设置参数完成  " + System.currentTimeMillis());
-            camera.takePicture(null, null,callback );
+            camera.takePicture(null, null, callback);
         }
     }
 
 
-
-    public void doStopCamera(){
-        if (camera != null){
+    public void doStopCamera() {
+        if (camera != null) {
             MyTools.writeSimpleLogWithTime("停止相机1");
             camera.stopPreview();
             camera.release();
@@ -188,6 +190,7 @@ public class InfraredCameraInterface {
             isPreview = false;
         }
     }
+
     private Point screenResolution;
     private Point cameraResolution;
     private int previewFormat;
@@ -208,7 +211,7 @@ public class InfraredCameraInterface {
 //    display.getSize(screenResolution);
         Log.d(TAG, "Screen resolution: " + screenResolution);
 
-        if(MainActivity.ISPORTRAIT){
+        if (MainActivity.ISPORTRAIT) {
 //            //为竖屏添加
             Point screenResolutionForCamera = new Point();
             screenResolutionForCamera.x = screenResolution.x;
@@ -219,7 +222,7 @@ public class InfraredCameraInterface {
             }
             // 下句第二参数要根据竖屏修改
             cameraResolution = getCameraResolution(parameters, screenResolutionForCamera);
-        }else{
+        } else {
 //            横屏下参数
             cameraResolution = getCameraResolution(parameters, screenResolution);
         }
@@ -252,6 +255,7 @@ public class InfraredCameraInterface {
 
         return cameraResolution;
     }
+
     private Point findBestPreviewSizeValue(CharSequence previewSizeValueString, Point screenResolution) {
         int bestX = 0;
         int bestY = 0;

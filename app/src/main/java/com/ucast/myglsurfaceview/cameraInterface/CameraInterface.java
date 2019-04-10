@@ -29,6 +29,7 @@ public class CameraInterface {
     }
 
     public void doOpenCamera(){
+        InfraredCameraInterface.getInstance().doStopCamera();
         if (camera == null) {
             MyTools.writeSimpleLogWithTime("开启相机0");
             camera = Camera.open(0);

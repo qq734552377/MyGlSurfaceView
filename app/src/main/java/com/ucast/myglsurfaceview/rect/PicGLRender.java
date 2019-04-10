@@ -172,8 +172,10 @@ public class PicGLRender {
         //计算宽高比
         float ratio = (float) width / height;
         //透视投影矩阵/视锥
-        MatrixHelper.perspectiveM(mProjectMatrix,0,45,ratio,3f,7);
-//        Matrix.frustumM(mProjectMatrix, 0, -ratio, ratio, -1, 1, 3, 7);
+//        MatrixHelper.perspectiveM(mProjectMatrix,0,45,ratio,3f,7);
+
+        // 这边参数需要手动 调整  具体情况具体调试
+        Matrix.frustumM(mProjectMatrix, 0, ratio, -ratio, -1, 1, 1.8f, 10f);
     }
 
     public void loadVertex() {
@@ -218,6 +220,7 @@ public class PicGLRender {
         Matrix.multiplyMM(tempViewAndProMult, 0, mProjectMatrix, 0, mViewMatrix, 0);
         Matrix.multiplyMM(tempAll, 0, tempViewAndProMult, 0, mRotateMatrix, 0);
         GLES20.glUniformMatrix4fv(mHRotateMatrix,1,false,mRotateMatrix,0);
+//        GLES20.glUniformMatrix4fv(mHRotateMatrix,1,false,tempAll,0);
 
         if (glTextureId != GLHelper.NO_TEXTURE) {
             GLES20.glActiveTexture(GLES20.GL_TEXTURE0);

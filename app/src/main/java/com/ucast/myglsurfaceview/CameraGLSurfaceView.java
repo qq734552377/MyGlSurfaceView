@@ -33,6 +33,7 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.IntBuffer;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -73,6 +74,7 @@ public class CameraGLSurfaceView extends GLSurfaceView implements Renderer, Surf
 
         initTakePhotoMsg();
 //        initMyMsg();
+        initMyPicMsg();
 
 //        myRenderer = new MyRenderer();
     }
@@ -80,7 +82,6 @@ public class CameraGLSurfaceView extends GLSurfaceView implements Renderer, Surf
         if(TakephotoActivity.boxs.isEmpty())
             return;
 
-        StringBuilder sb = new StringBuilder();
         for(Map.Entry<String, BoxMsg> item : TakephotoActivity.boxs.entrySet()){
             BoxMsg one = item.getValue();
             Point p = one.getPointInScreen();
@@ -142,6 +143,53 @@ public class CameraGLSurfaceView extends GLSurfaceView implements Renderer, Surf
         }
     }
 
+    public void initMyPicMsg(){
+        if(!TakephotoActivity.boxs.isEmpty())
+            return;
+        Map<String,BoxMsg> boxs = initData();
+        int i = 1;
+        for(Map.Entry<String, BoxMsg> item : boxs.entrySet()){
+            BoxMsg one = item.getValue();
+            Point p = new Point(100 + i * 100,100 + i * 100);
+            i++;
+            if (p == null)
+                continue;
+            if (p.x==0 && p.y==0)
+                continue;
+            //显示的信息
+            Bitmap oneBit = BitmapFactory.decodeFile(one.getShowPic());
+            bmps.add(oneBit);
+
+            float[] roateM = new float[16];
+            Matrix.setIdentityM(roateM, 0);
+            float[] pFloat = MyTools.getPicPosition(p);
+            Matrix.translateM(roateM, 0, pFloat[0], pFloat[1], 0);
+            float[] vertexRect = MyTools.getPicVertex(oneBit.getWidth(),oneBit.getHeight());
+            PicGLRender picGLRender = new PicGLRender(roateM,vertexRect);
+            picGLRenders.add(picGLRender);
+        }
+    }
+
+    public Map<String,BoxMsg> initData(){
+        Map<String,BoxMsg> boxs = new HashMap<>();
+        BoxMsg boxMsg1 = new BoxMsg();
+        boxMsg1.setLedId("BA 0A");
+        boxMsg1.setShowPic(Environment.getExternalStorageDirectory().getPath() + "/Ucast/port1.jpg");
+        boxMsg1.setShowPic(true);
+        BoxMsg boxMsg2 = new BoxMsg();
+        boxMsg2.setLedId("BB 0A");
+        boxMsg2.setShowPic(Environment.getExternalStorageDirectory().getPath() + "/Ucast/port2.jpg");
+        boxMsg2.setShowPic(true);
+        BoxMsg boxMsg3 = new BoxMsg();
+        boxMsg3.setLedId("BC 0A");
+        boxMsg3.setShowPic(Environment.getExternalStorageDirectory().getPath() + "/Ucast/port3.jpg");
+        boxMsg3.setShowPic(true);
+
+        boxs.put(boxMsg1.getLedId(),boxMsg1);
+        boxs.put(boxMsg2.getLedId(),boxMsg2);
+        boxs.put(boxMsg3.getLedId(),boxMsg3);
+        return boxs;
+    }
     @Override
     public void onSurfaceCreated(GL10 gl, EGLConfig config) {
         // TODO Auto-generated method stub

@@ -52,8 +52,8 @@ public class LedControlTools {
         return null;
     }
     public Point getPoint(Mat ledOffMat , Mat ledOnMat){
-        if (picPoint == null)
-            picPoint = new Point(2592,1944);
+        if (picPoint == null && ledOffMat != null)
+            picPoint = new Point(ledOffMat.cols(),ledOffMat.rows());
 //        MyTools.writeSimpleLogWithTime(" 准备分析图片 " + System.currentTimeMillis());
         int thresh = 200;
         if (ledOffMat != null && ledOnMat != null){

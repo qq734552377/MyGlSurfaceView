@@ -232,11 +232,11 @@ public class MyTools {
 
 
     public static float[] getPicPosition(Point p){
-        int centerX = ExceptionApplication.PREVIEWSCREENPOINT.x / 2;
-        int centerY = ExceptionApplication.PREVIEWSCREENPOINT.y / 2;
+        int centerX = ExceptionApplication.PREVIEWSCREENPOINT.y / 2;
+        int centerY = ExceptionApplication.PREVIEWSCREENPOINT.x / 2;
         float[]  pFloat = new float[2];
-        pFloat[0] = ((float) (p.x - centerX)) / ((float) centerX);
-        pFloat[1] = ((float) (p.y - centerY)) / ((float) centerY);
+        pFloat[0] = ((float) (p.y - centerX)) / ((float) centerX);
+        pFloat[1] = ((float) (p.x - centerY)) / ((float) centerY);
         return pFloat;
     }
 
@@ -244,8 +244,8 @@ public class MyTools {
 
     public static float[] getPicVertex(int width,int height){
 
-        float x = (float) width / (float) ExceptionApplication.SCREENPOINT.x * 0.5f;
-        float y = (float) height / (float) ExceptionApplication.SCREENPOINT.y * 0.5f;
+        float x = (float) width / (float) ExceptionApplication.SHOWSCREENPOINT.x * 0.5f;
+        float y = (float) height / (float) ExceptionApplication.SHOWSCREENPOINT.y * 0.5f;
         float[] vertex = new float[]{
                 -x, -y,
                 x , -y,
