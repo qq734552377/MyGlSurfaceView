@@ -35,7 +35,9 @@ public class NioNetPrintServer implements Runnable {
             server.group(bossGroup, workerGroup);
             server.channel(NioServerSocketChannel.class);// 类似NIO中serverSocketChannel
             //需要将服务端扩容
-            server.option(ChannelOption.SO_BACKLOG, 1024*1024);// 配置TCP参数
+            server.option(ChannelOption.SO_BACKLOG, 1024);// 配置TCP 连接数上限
+            server.option(ChannelOption.TCP_NODELAY, true);// 不使用Nagle算法 降低延迟
+            server.option(ChannelOption.SO_KEEPALIVE, true);// 保持长连接
             server.childHandler(new DataNetPrinterInitializer());
             // 服务器启动后 绑定监听端口 同步等待成功 主要用于异步操作的通知回调 回调处理用的ChildChannelHandler
             ChannelFuture f = server.bind(Config.NET_PRINT_PORT).sync();
