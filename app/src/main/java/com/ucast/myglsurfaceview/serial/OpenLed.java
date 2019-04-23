@@ -166,7 +166,7 @@ public class OpenLed {
     private void AnalyticalProtocol(byte[] buffer) {
         //添加串口数据
 //        jointBuffer(buffer);
-        MyTools.writeSimpleLog("加入缓存的数据： " + MyTools.printHexString(buffer));
+//        MyTools.writeSimpleLog("加入缓存的数据： " + MyTools.printHexString(buffer));
 //        ExceptionApplication.gLogger.info("所有的数据-->"+EpsonParseDemo.printHexString(buffer));
 //        while (offSet > 0) {
 //            int startIndex = getIndexByByte((byte) 0x24);

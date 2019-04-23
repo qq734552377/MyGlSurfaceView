@@ -3,6 +3,10 @@ package com.ucast.myglsurfaceview;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Point;
+import android.hardware.Sensor;
+import android.hardware.SensorEvent;
+import android.hardware.SensorEventListener;
+import android.hardware.SensorManager;
 import android.media.projection.MediaProjection;
 import android.media.projection.MediaProjectionManager;
 import android.os.Environment;
@@ -37,12 +41,14 @@ import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
 
+import java.text.NumberFormat;
 import java.util.HashMap;
 import java.util.Map;
 
-public class TakephotoActivity extends AppCompatActivity implements SurfaceHolder.Callback {
+public class TakephotoActivity extends AppCompatActivity implements SurfaceHolder.Callback, SensorEventListener {
 
     public static boolean ISPORTRAIT = false;
+    public static long SendLedCtrlSleepTime = 100L;
 
     SurfaceView sf;
     SurfaceHolder surfaceHolder;
@@ -62,7 +68,7 @@ public class TakephotoActivity extends AppCompatActivity implements SurfaceHolde
     private ScreenRecord mScreenRecord;
     public static final int REQUEST_CODE_A = 10001;
 
-
+    private SensorManager mSensorManager;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -109,8 +115,8 @@ public class TakephotoActivity extends AppCompatActivity implements SurfaceHolde
         } catch (Exception e) {
             MyTools.writeSimpleLogWithTime("开启led串口失败，原因-->" + e.toString());
         }
-//        String path_on =   Environment.getExternalStorageDirectory().toString() + "/Ucast/photo/on.jpg";
-//        String path_off =   Environment.getExternalStorageDirectory().toString() + "/Ucast/photo/off.jpg";
+//        String path_on =   Environment.getExternalStorageDirectory().toString() + "/Ucast/photo/on.png";
+//        String path_off =   Environment.getExternalStorageDirectory().toString() + "/Ucast/photo/off.png";
 //        Point p = LedControlTools.getInstance().getPoint(path_off,path_on);
 
 //        Toast.makeText(this,p.toString(),Toast.LENGTH_LONG).show();
@@ -119,25 +125,25 @@ public class TakephotoActivity extends AppCompatActivity implements SurfaceHolde
         ootStartIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
         this.startService(ootStartIntent);
 
-        MyTools.copyCfg(this,"port1.jpg","port2.jpg","port3.jpg");
+        MyTools.copyCfg(this,"port1.png","port2.png","port3.png");
 
         initData();
 //        startScreenCapture();
-
+        mSensorManager=(SensorManager)getSystemService(Context.SENSOR_SERVICE);
     }
 
     public void initData(){
         BoxMsg boxMsg1 = new BoxMsg();
         boxMsg1.setLedId("BA 0A");
-        boxMsg1.setShowPic(Environment.getExternalStorageDirectory().getPath() + "/Ucast/port1.jpg");
+        boxMsg1.setShowPic(Environment.getExternalStorageDirectory().getPath() + "/Ucast/port1.png");
         boxMsg1.setShowPic(true);
         BoxMsg boxMsg2 = new BoxMsg();
         boxMsg2.setLedId("BB 0A");
-        boxMsg2.setShowPic(Environment.getExternalStorageDirectory().getPath() + "/Ucast/port2.jpg");
+        boxMsg2.setShowPic(Environment.getExternalStorageDirectory().getPath() + "/Ucast/port2.png");
         boxMsg2.setShowPic(true);
         BoxMsg boxMsg3 = new BoxMsg();
         boxMsg3.setLedId("BC 0A");
-        boxMsg3.setShowPic(Environment.getExternalStorageDirectory().getPath() + "/Ucast/port3.jpg");
+        boxMsg3.setShowPic(Environment.getExternalStorageDirectory().getPath() + "/Ucast/port3.png");
         boxMsg3.setShowPic(true);
 
         boxs.put(boxMsg1.getLedId(),boxMsg1);
@@ -162,13 +168,16 @@ public class TakephotoActivity extends AppCompatActivity implements SurfaceHolde
     @Override
     protected void onResume() {
         super.onResume();
-
+        count = 0;
+        allSDAccount = 0f;
     }
 
     @Override
     protected void onPause() {
         super.onPause();
         InfraredCameraInterface.getInstance().doStopCamera();
+        if(mSensorManager != null)
+            mSensorManager.unregisterListener(this);
     }
 
     @Override
@@ -213,7 +222,7 @@ public class TakephotoActivity extends AppCompatActivity implements SurfaceHolde
             // 开灯
             openLed.Send(Config.OPENLED);
             try {
-                Thread.sleep(50);
+                Thread.sleep(SendLedCtrlSleepTime);
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
@@ -240,7 +249,7 @@ public class TakephotoActivity extends AppCompatActivity implements SurfaceHolde
             // 关灯
             openLed.Send(Config.CLOSELED);
             try {
-                Thread.sleep(50);
+                Thread.sleep(SendLedCtrlSleepTime);
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
@@ -250,6 +259,33 @@ public class TakephotoActivity extends AppCompatActivity implements SurfaceHolde
         }
     }
 
+    private float[] angleSD =new float[3];
+    NumberFormat nf = null;
+    int count = 0;
+    float allSDAccount = 0f;
+    @Override
+    public void onSensorChanged(SensorEvent event) {
+        int type = event.sensor.getType();
+        if (nf == null) {
+            nf = NumberFormat.getNumberInstance();
+            nf.setMaximumFractionDigits(4);
+        }
+        if (type == Sensor.TYPE_GYROSCOPE){
+            angleSD[0] = event.values[0];
+            angleSD[1] = event.values[1];
+            angleSD[2] = event.values[2];
+
+            allSDAccount += Float.valueOf(nf.format(angleSD[1]));
+
+            count ++;
+            return;
+        }
+    }
+
+    @Override
+    public void onAccuracyChanged(Sensor sensor, int accuracy) {
+
+    }
 
 
     public class TakePhotoThread extends Thread{
@@ -307,7 +343,7 @@ public class TakephotoActivity extends AppCompatActivity implements SurfaceHolde
 //        ToastUtil.showToast(TakephotoActivity.this,"拍照完成-》" + boxs.get("BA 0A").getPointInScreen());
         for (Map.Entry<String, BoxMsg> item : boxs.entrySet()) {
             BoxMsg one = item.getValue();
-            MyTools.writeSimpleLog(one.getLedId() + "  点位置--》" + one.getPointInScreen() );
+//            MyTools.writeSimpleLog(one.getLedId() + "  点位置--》" + one.getPointInScreen() );
         }
         MyTools.writeSimpleLog("------------------------>");
 
@@ -320,8 +356,12 @@ public class TakephotoActivity extends AppCompatActivity implements SurfaceHolde
     }
 
     public void startArAct(){
+        if(mSensorManager != null)
+            mSensorManager.unregisterListener(this);
         Intent intent = new Intent(TakephotoActivity.this,MainActivity.class);
         intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        intent.putExtra("count",count);
+        intent.putExtra("xasd",allSDAccount);
         startActivity(intent);
     }
 
@@ -330,6 +370,12 @@ public class TakephotoActivity extends AppCompatActivity implements SurfaceHolde
     public boolean onKeyDown(int keyCode, KeyEvent event) {
         if (keyCode == KeyEvent.KEYCODE_F2){
             ToastUtil.showToast(this,"点击了F2");
+            if(mSensorManager != null) {
+//                mSensorManager.unregisterListener(this);
+                mSensorManager.registerListener(this, mSensorManager.getDefaultSensor(Sensor.TYPE_GYROSCOPE), SensorManager.SENSOR_DELAY_UI);
+//            mSensorManager.registerListener(this, mSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER), SensorManager.SENSOR_DELAY_UI);
+//            mSensorManager.registerListener(this, mSensorManager.getDefaultSensor(Sensor.TYPE_LINEAR_ACCELERATION), SensorManager.SENSOR_DELAY_UI);
+            }
             startTakePhoto();
             return true;
         }

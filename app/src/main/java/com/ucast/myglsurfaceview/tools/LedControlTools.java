@@ -44,8 +44,8 @@ public class LedControlTools {
         if (ledoff != null && ledon != null){
             int[] result = nativeProcessFrame(ledoff.getNativeObjAddr(),ledon.getNativeObjAddr(),thresh);
             Point screenPoint = ExceptionApplication.PREVIEWSCREENPOINT;
-            int x = screenPoint.x * result[0] / picPoint.x ;
-            int y = screenPoint.y * result[1] / picPoint.y ;
+            int x = screenPoint.x * result[0] / picPoint.y ;
+            int y = screenPoint.y * result[1] / picPoint.x ;
             return new Point(x,y);
         }
 //        MyTools.writeSimpleLogWithTime("分析图片完成  " + System.currentTimeMillis());
@@ -59,8 +59,8 @@ public class LedControlTools {
         if (ledOffMat != null && ledOnMat != null){
             int[] result = nativeProcessFrame(ledOffMat.getNativeObjAddr(),ledOnMat.getNativeObjAddr(),thresh);
             Point screenPoint = ExceptionApplication.PREVIEWSCREENPOINT;
-            int x = screenPoint.x * result[0] / picPoint.x ;
-            int y = screenPoint.y * result[1] / picPoint.y ;
+            int x = screenPoint.x * result[0] / picPoint.y ;
+            int y = screenPoint.y * result[1] / picPoint.x ;
             return new Point(x,y);
         }
 //        MyTools.writeSimpleLogWithTime("分析图片完成  " + System.currentTimeMillis());

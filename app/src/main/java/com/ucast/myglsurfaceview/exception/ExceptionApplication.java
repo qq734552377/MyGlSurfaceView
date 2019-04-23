@@ -17,7 +17,7 @@ public class ExceptionApplication extends Application {
     public static Context context;
     public static Logger gLogger;
     public static Point PREVIEWSCREENPOINT = new Point(1240,600);
-    public static Point SHOWSCREENPOINT = new Point(800,450);
+    public static Point SHOWSCREENPOINT = new Point(1240,600);
 
     static {
         System.loadLibrary("opencv_java3");

@@ -244,8 +244,8 @@ public class MyTools {
 
     public static float[] getPicVertex(int width,int height){
 
-        float x = (float) width / (float) ExceptionApplication.SHOWSCREENPOINT.x * 0.5f;
-        float y = (float) height / (float) ExceptionApplication.SHOWSCREENPOINT.y * 0.5f;
+        float x = (float) width / (float) ExceptionApplication.SHOWSCREENPOINT.x * 0.7f;
+        float y = (float) height / (float) ExceptionApplication.SHOWSCREENPOINT.y * 0.7f;
         float[] vertex = new float[]{
                 -x, -y,
                 x , -y,

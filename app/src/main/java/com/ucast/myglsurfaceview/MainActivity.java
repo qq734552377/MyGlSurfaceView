@@ -41,6 +41,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     float firstX = 0f;
     float firstY = 0f;
 
+
     private float[] matrix=new float[16];
 
     private MediaProjectionManager mMediaProjectionManager;
@@ -48,11 +49,15 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     private ScreenRecord mScreenRecord;
     public static final int REQUEST_CODE_A = 10001;
 
+    private int t_count = 0;
+    private float t_allXSD = 0f;
+    private float avg_baseXSD = 0f;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        MyTools.copyCfg(this,"port1.jpg","port2.jpg","port3.jpg");
+        MyTools.copyCfg(this,"port1.png","port2.png","port3.png");
         gl =(CameraGLSurfaceView) findViewById(R.id.gl_view);
         msg = findViewById(R.id.msg);
         mSensorManager=(SensorManager)getSystemService(Context.SENSOR_SERVICE);
@@ -69,6 +74,11 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
         initVideoSomething();
         ApManager.openHotspotWithNoPassword(this,"firefly");
+        Intent intent = getIntent();
+        t_count = intent.getIntExtra("count",0);
+        t_allXSD = intent.getFloatExtra("xasd",0f);
+//        avg_baseXSD = t_allXSD / t_count;
+//        ToastUtil.showToast(this,"count -->" + t_count + "   xsad-->" + t_allXSD + "  avg-->" + avg_baseXSD);
     }
 
     public void initVideoSomething(){
@@ -120,6 +130,8 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     private float lowvalue = 0.01f;
     private int iCount = 0;
     DecimalFormat df = null;
+
+    private int gy_initNoCautionNumber = 0;
     @Override
     public void onSensorChanged(SensorEvent event) {
         int type = event.sensor.getType();
@@ -156,6 +168,11 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         }
 
         if (type == Sensor.TYPE_GYROSCOPE){
+            if (gy_initNoCautionNumber < 50){
+                gy_initNoCautionNumber ++;
+                return;
+            }
+
             //从 x、y、z 轴的正向位置观看处于原始方位的设备，如果设备逆时针旋转，将会收到正值；否则，为负值
             if(timestamp_rotation != 0) {
                 // 得到两次检测到手机旋转的时间差（纳秒），并将其转化为秒
@@ -167,17 +184,22 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 //                    return;
 //                }
 
-                if(Math.abs(event.values[0]) < lowvalue || Math.abs(event.values[1]) < lowvalue || Math.abs(event.values[2]) < lowvalue){
+                if(Math.abs(event.values[0]) < lowvalue || Math.abs(event.values[1]) < lowvalue || Math.abs(event.values[2]) < lowvalue){//去抖
                     timestamp_rotation = event.timestamp;
                     return;
                 }
+//                if (Math.abs(event.values[1]) < lowvalue){
+//                    timestamp_rotation = event.timestamp;
+//                    return;
+//                }
+
 
                 // 将手机在各个轴上的旋转角度相加，即可得到当前位置相对于初始位置的旋转弧度
-                angle[0] = event.values[0] * dT;
+                angle[0] = (event.values[0] - avg_baseXSD) * dT;
 
-                angle[1] = event.values[1] * dT;
+                angle[1] = (event.values[1] - avg_baseXSD) * dT;
 
-                angle[2] = event.values[2] * dT;
+                angle[2] = (event.values[2] - avg_baseXSD) * dT;
 
                 // 将弧度转化为角度
                 float anglex = (float) Math.toDegrees(angle[0]);
@@ -186,10 +208,11 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
                 float anglez = (float) Math.toDegrees(angle[2]);
 
-                Log.i(TAG,"yuanshi event zhi --> xs:" + event.values[0] + "  ys:" + event.values[1] + "  zs:" + event.values[2] );
-                Log.i(TAG,"jisuan de jiaodu  --> xd:" + df.format(anglex) + "  yd:" + df.format(angley) + "  zd:" + df.format(anglez) + "  DT:" + dT);
+//                Log.i(TAG,"yuanshi event zhi --> xs:" + event.values[0] + "  ys:" + event.values[1] + "  zs:" + event.values[2] );
+//                Log.i(TAG,"jisuan de jiaodu  --> xd:" + df.format(anglex) + "  yd:" + df.format(angley) + "  zd:" + df.format(anglez) + "  DT:" + dT);
                 Matrix.setIdentityM(matrix,0);
-                Matrix.translateM(matrix,0,4.5f * angley * x_coefficient,1.0f * anglex * y_coefficient,0);
+//                Matrix.translateM(matrix,0,4.5f * angley * x_coefficient,1.0f * anglex * y_coefficient,0);
+                Matrix.translateM(matrix,0,4.5f * angley * x_coefficient,0,0);
                 gl.updateMatrix(matrix);
                 msg.setText("anglex------------>" + anglex + "\nangley------------>" + angley + "\nanglez------------>" + anglez
                         + "\n DT->" + dT

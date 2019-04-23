@@ -62,9 +62,9 @@ public class UnityActivity extends UnityPlayerActivity {
     }
 
     public void showBoxMsg(){
-        String p1 = "file://" + Environment.getExternalStorageDirectory().getPath() + "/Ucast/port1.jpg";
-        String p2 = "file://" + Environment.getExternalStorageDirectory().getPath() + "/Ucast/port2.jpg";
-        String p3 = "file://" + Environment.getExternalStorageDirectory().getPath() + "/Ucast/port3.jpg";
+        String p1 = "file://" + Environment.getExternalStorageDirectory().getPath() + "/Ucast/port1.png";
+        String p2 = "file://" + Environment.getExternalStorageDirectory().getPath() + "/Ucast/port2.png";
+        String p3 = "file://" + Environment.getExternalStorageDirectory().getPath() + "/Ucast/port3.png";
         sendMsgToUnity("300#300#2.0#" + p1 + ",500#300#2.0#" + p2 + ",700#300#2.0#" + p3);
     }
 

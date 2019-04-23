@@ -61,7 +61,7 @@ public class CameraGLSurfaceView extends GLSurfaceView implements Renderer, Surf
 
     public CameraGLSurfaceView(Context context, AttributeSet attrs) {
         super(context, attrs);
-        MyTools.copyCfg(context,"port1.jpg","port2.jpg","port3.jpg");
+        MyTools.copyCfg(context,"port1.png","port2.png","port3.png");
         // TODO Auto-generated constructor stub
         mContext = context;
         setEGLContextClientVersion(2);
@@ -83,24 +83,78 @@ public class CameraGLSurfaceView extends GLSurfaceView implements Renderer, Surf
         if(TakephotoActivity.boxs.isEmpty())
             return;
 
+
+        List<BoxMsg> boxMsgList = new ArrayList<>();
         for(Map.Entry<String, BoxMsg> item : TakephotoActivity.boxs.entrySet()){
             BoxMsg one = item.getValue();
             Point p = one.getPointInScreen();
             if (p == null)
                 continue;
-            if (p.x==0 && p.y==0)
+            if (p.x == 0 && p.y == 0)
                 continue;
+
+
+            boxMsgList.add(one);
+
+        }
+        for (int i = 0; i < boxMsgList.size() - 1; i++) {
+            for (int j = 0; j < boxMsgList.size() - 1 - i; j++) {
+                BoxMsg one_qian = boxMsgList.get(j);
+                BoxMsg one_hou = boxMsgList.get(j + 1);
+                if (one_qian.getPointInScreen().y > one_hou.getPointInScreen().y){
+                    boxMsgList.set(j + 1, one_qian);
+                    boxMsgList.set(j,one_hou);
+                }
+            }
+        }
+        Point firstPoint = null;
+        float[] lastPFloat = null;
+        float jianju = 0.3f;
+        for (int i = 0; i < boxMsgList.size(); i++) {
+            BoxMsg one = boxMsgList.get(i);
+            Point p = one.getPointInScreen();
+
+            MyTools.writeSimpleLog(one.getLedId() + "  排序后的点位置--》" + one.getPointInScreen() );
+            if (firstPoint == null)
+                firstPoint = p;
             //显示的信息
             Bitmap oneBit = BitmapFactory.decodeFile(one.getShowPic());
             bmps.add(oneBit);
 
             float[] roateM = new float[16];
             Matrix.setIdentityM(roateM, 0);
+
+            //参数修正
+            if (firstPoint != null){
+                if (Math.abs(p.x - firstPoint.x) > 12)
+                    p.x = firstPoint.x;
+            }
+
             float[] pFloat = MyTools.getPicPosition(p);
-            Matrix.translateM(roateM, 0, pFloat[0], pFloat[1], 0);
+//            MyTools.writeSimpleLog(one.getLedId() + "  Float--》x:" + pFloat[0] + "  y:" + pFloat[1] );
+            //图片间隔修正
+            if (i > 0 && lastPFloat != null){
+                if (pFloat[0] - lastPFloat[0] < jianju){
+                    pFloat[0] = lastPFloat[0] + jianju;
+                }
+            }
+//            MyTools.writeSimpleLog(one.getLedId() + "  图片间隔修正 Float--》x:" + pFloat[0] + "  y:" + pFloat[1] );
             float[] vertexRect = MyTools.getPicVertex(oneBit.getWidth(),oneBit.getHeight());
+            //中心点位置修正
+            {
+                pFloat[0] = pFloat[0] - vertexRect[0] * 0.8f;
+                pFloat[1] = pFloat[1] + vertexRect[1] * 0.7f;
+            }
+            Matrix.translateM(roateM, 0, pFloat[0], pFloat[1], 0);
+            if (jianju == 0.3f) {
+                jianju = vertexRect[2] - vertexRect[0];
+                MyTools.writeSimpleLog(one.getLedId() + "  图片 jianju:" + jianju );
+            }
+
+
             PicGLRender picGLRender = new PicGLRender(roateM,vertexRect);
             picGLRenders.add(picGLRender);
+            lastPFloat = pFloat;
         }
     }
 
@@ -175,15 +229,15 @@ public class CameraGLSurfaceView extends GLSurfaceView implements Renderer, Surf
         Map<String,BoxMsg> boxs = new HashMap<>();
         BoxMsg boxMsg1 = new BoxMsg();
         boxMsg1.setLedId("BA 0A");
-        boxMsg1.setShowPic(Environment.getExternalStorageDirectory().getPath() + "/Ucast/port1.jpg");
+        boxMsg1.setShowPic(Environment.getExternalStorageDirectory().getPath() + "/Ucast/port1.png");
         boxMsg1.setShowPic(true);
         BoxMsg boxMsg2 = new BoxMsg();
         boxMsg2.setLedId("BB 0A");
-        boxMsg2.setShowPic(Environment.getExternalStorageDirectory().getPath() + "/Ucast/port2.jpg");
+        boxMsg2.setShowPic(Environment.getExternalStorageDirectory().getPath() + "/Ucast/port2.png");
         boxMsg2.setShowPic(true);
         BoxMsg boxMsg3 = new BoxMsg();
         boxMsg3.setLedId("BC 0A");
-        boxMsg3.setShowPic(Environment.getExternalStorageDirectory().getPath() + "/Ucast/port3.jpg");
+        boxMsg3.setShowPic(Environment.getExternalStorageDirectory().getPath() + "/Ucast/port3.png");
         boxMsg3.setShowPic(true);
 
         boxs.put(boxMsg1.getLedId(),boxMsg1);
